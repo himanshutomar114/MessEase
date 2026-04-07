@@ -1,0 +1,13 @@
+# services:
+#   - type: web
+#     name: your-service-name   # Change this to your actual service name on Render
+#     env: node
+#     buildCommand: npm install && npm run build
+#     startCommand: npm start
+#     headers:
+#       - path: /*
+#         name: Cross-Origin-Opener-Policy
+#         value: same-origin-allow-popups
+#       - path: /*
+#         name: Cross-Origin-Embedder-Policy
+#         value: require-corp
