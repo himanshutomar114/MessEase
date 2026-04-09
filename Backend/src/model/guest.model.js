@@ -26,8 +26,23 @@ const GuestRoomSchema = new Schema(
     },
     status: {
       type: String,
-      enum: ["occupied", "available", "reserved"],
-      default: "reserved",
+      enum: ["pending", "approved", "occupied", "available", "reserved", "rejected"],
+      default: "pending",
+    },
+    approvalStatus: {
+      type: String,
+      enum: ["pending", "approved", "rejected"],
+      default: "pending",
+    },
+    approvedBy: {
+      type: Schema.Types.ObjectId,
+      ref: "User",
+    },
+    approvalDate: {
+      type: Date,
+    },
+    rejectionReason: {
+      type: String,
     },
     purpose: {
       type: String,

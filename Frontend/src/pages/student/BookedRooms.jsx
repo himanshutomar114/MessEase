@@ -13,12 +13,39 @@ const BookedRooms = () => {
   const navigate = useNavigate();
   const { loadingCheck } = useHostelCheck();
   const isBlocked = useSelector((state) => state.auth.isBlocked);
+  
   useEffect(() => {
     if (isBlocked) {
       toast.error("You are blocked by admin.");
       navigate("/student/home");
     }
   }, [isBlocked]);
+
+  // Auto-refresh every 5 seconds to show approval status updates
+  useEffect(() => {
+    const interval = setInterval(() => {
+      fetchBookedRooms();
+    }, 5000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const getStatusColor = (status) => {
+    switch (status?.toLowerCase()) {
+      case "approved":
+        return "bg-green-600";
+      case "pending":
+        return "bg-yellow-600";
+      case "rejected":
+        return "bg-red-600";
+      default:
+        return "bg-gray-600";
+    }
+  };
+
+  const getStatusDisplay = (room) => {
+    const status = room.approvalStatus || room.status || "pending";
+    return status.charAt(0).toUpperCase() + status.slice(1);
+  };
 
   const fetchBookedRooms = async () => {
     try {
@@ -79,10 +106,15 @@ const BookedRooms = () => {
                 key={room._id}
                 className="bg-gray-700 p-4 rounded-lg shadow-md flex justify-between items-center"
               >
-                <div>
-                  <h3 className="text-lg font-semibold text-white">
-                    Room {room.roomNumber}
-                  </h3>
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-1">
+                    <h3 className="text-lg font-semibold text-white">
+                      Room {room.roomNumber}
+                    </h3>
+                    <span className={`px-2 py-1 rounded text-xs font-semibold text-white ${getStatusColor(room.approvalStatus || room.status)}`}>
+                      {getStatusDisplay(room)}
+                    </span>
+                  </div>
                   <p className="text-gray-300">
                     <span className="font-medium">Check-In:</span>{" "}
                     {new Date(room.checkInDate).toLocaleDateString()}
@@ -91,6 +123,21 @@ const BookedRooms = () => {
                     <span className="font-medium">Check-Out:</span>{" "}
                     {new Date(room.checkOutDate).toLocaleDateString()}
                   </p>
+                  {room.approvalStatus === "pending" && (
+                    <p className="text-yellow-300 text-xs mt-2">
+                      ⏳ Waiting for admin approval
+                    </p>
+                  )}
+                  {room.approvalStatus === "approved" && (
+                    <p className="text-green-300 text-xs mt-2">
+                      ✓ Approved - Ready to check-in
+                    </p>
+                  )}
+                  {room.rejectionReason && (
+                    <p className="text-red-300 text-xs mt-2">
+                      ❌ {room.rejectionReason}
+                    </p>
+                  )}
                 </div>
                 <button
                   onClick={() => handleCancelBooking(room._id)}

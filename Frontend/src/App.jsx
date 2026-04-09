@@ -57,6 +57,8 @@ import ChatInbox from "./pages/student/ChatInbox.jsx";
 import ProductDetails from "./pages/student/ProductDetails.jsx";
 import { useDispatch } from "react-redux";
 import { setUser } from "./store/authSlice.js";
+import GuestBookingApprovalsPage from "./pages/admin/GuestBookingApprovalsPage.jsx";
+import GuestBookingsPage from "./pages/student/GuestBookingsPage.jsx";
 
 function App() {
   const dispatch = useDispatch();
@@ -195,6 +197,9 @@ function App() {
         <Route path="/see-booking" element={<BookedRooms />} />
         <Route path="/admin/create-GroupChat" element={<CreateGroupChat />} />
         <Route path="/hostel/groupChat/:code" element={<GroupChat />} />
+        {/* Guest Room Booking Routes */}
+        <Route path="/admin/guest-bookings" element={<GuestBookingApprovalsPage />} />
+        <Route path="/student/guest-bookings" element={<GuestBookingsPage />} />
       </Routes>
       {/* <Toaster
         position="top-right"
