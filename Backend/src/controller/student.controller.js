@@ -141,12 +141,13 @@ export const verifyStudentOTP = async (req, res) => {
   await newUser.save();
 
   const accessToken = newUser.generateAccessToken();
-  const refreshToken = newUser.generateRefreshToken();
 
+  const refreshToken = newUser.generateRefreshToken();
+  const isProduction = process.env.NODE_ENV === "production";
   const options = {
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "none",
+    secure: isProduction, // false for localhost
+    sameSite: isProduction ? "none" : "lax", // lax for localhost
     path: "/",
     maxAge: 24 * 60 * 60 * 1000,
   };
@@ -277,11 +278,11 @@ export const loginStudent = async (req, res) => {
 
   const accessToken = user.generateAccessToken();
   const refreshToken = user.generateRefreshToken();
-  // console.log("3");
+  const isProduction = process.env.NODE_ENV === "production";
   const options = {
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "none",
+    secure: isProduction,
+    sameSite: isProduction ? "none" : "lax",
     path: "/",
     maxAge: 24 * 60 * 60 * 1000,
   };
@@ -353,10 +354,11 @@ export const googleAuth = async (req, res) => {
       user.refreshToken = refreshToken;
       await user.save();
 
+      const isProduction = process.env.NODE_ENV === "production";
       const options = {
         httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "none",
+        secure: isProduction,
+        sameSite: isProduction ? "none" : "lax",
         path: "/",
         maxAge: 24 * 60 * 60 * 1000,
       };
@@ -389,10 +391,11 @@ export const googleAuth = async (req, res) => {
       user.refreshToken = refreshToken;
       await user.save();
 
+      const isProduction = process.env.NODE_ENV === "production";
       const options = {
         httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "none",
+        secure: isProduction,
+        sameSite: isProduction ? "none" : "lax",
         path: "/",
         maxAge: 24 * 60 * 60 * 1000,
       };

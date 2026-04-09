@@ -106,13 +106,13 @@ userSchema.methods.isPasswordCorrect = async function (password) {
 userSchema.methods.generateAccessToken = function () {
   return jwt.sign(
     {
-      _id: this._id, // Correct syntax for MongoDB document ID
+      _id: this._id,
       email: this.email,
-      username: this.username,
-      fullName: this.fullName,
+      name: this.name,
+      role: this.role,
     },
     process.env.ACCESS_TOKEN_SECRET,
-    { expiresIn: process.env.ACCESS_TOKEN_EXPIRY }
+    { expiresIn: process.env.ACCESS_TOKEN_EXPIRY || "1d" }
   );
 };
 
@@ -120,11 +120,11 @@ userSchema.methods.generateRefreshToken = function () {
   return jwt.sign(
     {
       _id: this._id,
+      email: this.email,
+      role: this.role,
     },
     process.env.REFRESH_TOKEN_SECRET,
-    {
-      expiresIn: process.env.REFRESH_TOKEN_EXPIRY,
-    }
+    { expiresIn: process.env.REFRESH_TOKEN_EXPIRY || "7d" }
   );
 };
 

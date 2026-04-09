@@ -9,7 +9,15 @@ dotenv.config({
   path: "./.env",
 });
 
-const app = express();
+
+const allowedOrigins = [
+  "http://localhost:5173"
+];
+
+app.use(cors({
+  origin: allowedOrigins,
+  credentials: true
+}));
 
 // Middleware to parse JSON bodies
 app.use(express.json());
