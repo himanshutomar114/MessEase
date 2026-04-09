@@ -112,8 +112,15 @@ const FeesPaymentPage = () => {
   const downloadReceipt = async () => {
     try {
       // Fetch user info from /api/student/verify-token
-      const res = await api.post("/api/student/verify-token");
-      const userInfo = res.data.userInfo; // Expected to have: name, email, branch, year
+      let userInfo = { name: "N/A", email: "N/A", branch: "N/A", year: "N/A" };
+      try {
+        const res = await api.post("/api/student/verify-token");
+        userInfo = res.data.userInfo; // Expected to have: name, email, branch, year
+      } catch (err) {
+        console.error("Warning: Could not fetch user info for receipt:", err.message);
+        // Use fallback/empty data and continue
+        toast.warning("Using default user info for receipt");
+      }
 
       // Get current date for receipt generation timestamp
       const today = new Date().toLocaleDateString("en-GB", {
@@ -321,7 +328,8 @@ const FeesPaymentPage = () => {
       toast.success("Receipt downloaded successfully");
     } catch (err) {
       console.error("Error generating receipt:", err);
-      toast.error("Failed to generate receipt");
+      console.error("Error details:", err.message);
+      toast.error("Failed to generate receipt: " + (err.message || "Unknown error"));
     }
   };
 
