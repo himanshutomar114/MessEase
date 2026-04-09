@@ -432,10 +432,11 @@ export const logout = async (req, res) => {
       { $unset: { refreshToken: 1 } },
       { new: true }
     );
+    const isProduction = process.env.NODE_ENV === "production";
     const options = {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "none",
+      secure: isProduction,
+      sameSite: isProduction ? "none" : "lax",
       path: "/",
     };
     return res

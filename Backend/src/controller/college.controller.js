@@ -17,8 +17,8 @@ cloudinary.config({
 });
 
 // Hardcoded developer email
-const developerEmail = "harsh1618sharma@gmail.com";
-const dev2Email = "meetkorat1406@gmail.com";
+const developerEmail = "himanshutomar114@gmail.com";
+const dev2Email = "himanshutomar0114@gmail.com";
 
 // Configure nodemailer transporter
 const transporter = nodemailer.createTransport({

@@ -16,7 +16,7 @@
     "hostel",
     "college"
   ],
-  "author": "Harsh, Meet, Manu",
+  "author": "Himanshu Tomar",
   "license": "ISC",
   "dependencies": {
     "axios": "^1.8.2",

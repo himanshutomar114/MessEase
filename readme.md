@@ -171,7 +171,7 @@ MessEase is licensed under the MIT License. See the [LICENSE](LICENSE) file for 
 
 ## Contact
 
-For questions or suggestions, please contact [harsh1618sharma@gmail.com](mailto:harsh1618sharma@gmail.com).
+For questions or suggestions, please contact [himanshutomar114@gmail.com](mailto:himanshutomar114@gmail.com).
 
 ---
 
