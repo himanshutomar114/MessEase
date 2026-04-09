@@ -59,6 +59,7 @@ import { useDispatch } from "react-redux";
 import { setUser } from "./store/authSlice.js";
 import GuestBookingApprovalsPage from "./pages/admin/GuestBookingApprovalsPage.jsx";
 import GuestBookingsPage from "./pages/student/GuestBookingsPage.jsx";
+import GuestRoomBookingsPage from "./pages/admin/GuestRoomBookingsPage.jsx";
 
 function App() {
   const dispatch = useDispatch();
@@ -94,6 +95,7 @@ function App() {
         <Route path="/college/verify/:code" element={<CollegeVerifyPage />} />
         <Route path="/admin/college/create" element={<CreateCollegePage />} />
         <Route path="/admin/create-hostel" element={<HostelForm />} />
+        <Route path="/admin/hostel/:code/bookings" element={<GuestRoomBookingsPage />} />
         <Route path="/admin/hostel/:code" element={<HostelDetailPage />} />
         <Route
           path="/admin/hostel/complaints/:code"

@@ -8,6 +8,8 @@ import {
   approveGuestBooking,
   rejectGuestBooking,
   getBookingRecord,
+  getActiveBookings,
+  getBookingHistory,
 } from "../controller/guest.controller.js";
 import { verifyJWT } from "../middleware/auth.middleware.js";
 
@@ -25,5 +27,9 @@ router.patch("/reject-booking/:bookingId", verifyJWT, rejectGuestBooking);
 
 // Booking record route
 router.get("/booking-record/:bookingId", verifyJWT, getBookingRecord);
+
+// Admin booking history and active routes
+router.get("/active-bookings", verifyJWT, getActiveBookings);
+router.get("/booking-history", verifyJWT, getBookingHistory);
 
 export default router;

@@ -119,9 +119,8 @@ export const allBookedRoom = async (req, res) => {
 
 export const deleteBookedRoom = async (req, res) => {
   try {
-    const { bookingId } = req.query; // Changed from req.body to req.query
+    const { bookingId } = req.query;
     const userId = req.user._id;
-    // console.log(userId, bookingId);
 
     if (!userId || !bookingId) {
       return res
@@ -129,13 +128,23 @@ export const deleteBookedRoom = async (req, res) => {
         .json({ message: "User ID and Booking ID are required." });
     }
 
-    // Find and delete the booking
-    const deletedBooking = await GuestRoom.findOneAndDelete({
-      _id: bookingId,
-      guest: userId,
-    });
+    // Find and update the booking to mark as cancelled instead of deleting
+    const cancelledBooking = await GuestRoom.findOneAndUpdate(
+      {
+        _id: bookingId,
+        guest: userId,
+      },
+      {
+        approvalStatus: "cancelled",
+        status: "cancelled",
+        cancelledBy: userId,
+        cancellationDate: new Date(),
+        cancellationReason: "Cancelled by student",
+      },
+      { new: true }
+    );
 
-    if (!deletedBooking) {
+    if (!cancelledBooking) {
       return res
         .status(404)
         .json({ message: "Booking not found or already cancelled." });
@@ -167,12 +176,19 @@ export const getPendingBookings = async (req, res) => {
     }
 
     const admin = await User.findById(adminId);
-    if (!admin || admin.hostel?.toString() !== hostelId) {
-      // Also check if admin is a hostel manager for this hostel
-      const isManager = admin.role === "hostelManager" || admin.college?.toString() === hostel.college?.toString();
-      if (!isManager) {
-        return res.status(403).json({ error: "Unauthorized access" });
-      }
+    if (!admin) {
+      return res.status(401).json({ error: "Admin not found" });
+    }
+
+    // Check authorization: admin owns hostel OR is hostelManager OR same college OR superAdmin
+    const isAuthorized =
+      admin.hostel?.toString() === hostelId ||
+      admin.role === "hostelManager" ||
+      admin.role === "superAdmin" ||
+      admin.college?.toString() === hostel.college?.toString();
+
+    if (!isAuthorized) {
+      return res.status(403).json({ error: "Unauthorized access" });
     }
 
     // Find all pending bookings for this hostel
@@ -297,7 +313,8 @@ export const getBookingRecord = async (req, res) => {
     const booking = await GuestRoom.findById(bookingId)
       .populate("guest", "name email rollNumber")
       .populate("hostel", "name location code")
-      .populate("approvedBy", "name email");
+      .populate("approvedBy", "name email")
+      .populate("cancelledBy", "name email");
 
     if (!booking) {
       return res.status(404).json({ error: "Booking not found" });
@@ -319,10 +336,119 @@ export const getBookingRecord = async (req, res) => {
         approvedBy: booking.approvedBy,
         approvalDate: booking.approvalDate,
         rejectionReason: booking.rejectionReason,
+        cancelledBy: booking.cancelledBy,
+        cancellationDate: booking.cancellationDate,
+        cancellationReason: booking.cancellationReason,
       },
     });
   } catch (error) {
     console.error("Error fetching booking record:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
+export const getActiveBookings = async (req, res) => {
+  try {
+    const adminId = req.user._id;
+    const { hostelId } = req.query;
+
+    if (!hostelId) {
+      return res.status(400).json({ error: "Hostel ID is required" });
+    }
+
+    if (!mongoose.Types.ObjectId.isValid(hostelId)) {
+      return res.status(400).json({ error: "Invalid hostel ID" });
+    }
+
+    // Verify admin has access to this hostel
+    const hostel = await Hostel.findById(hostelId);
+    if (!hostel) {
+      return res.status(404).json({ error: "Hostel not found" });
+    }
+
+    const admin = await User.findById(adminId);
+    if (!admin) {
+      return res.status(401).json({ error: "Admin not found" });
+    }
+
+    // Check authorization: admin owns hostel OR is hostelManager OR same college OR superAdmin
+    const isAuthorized =
+      admin.hostel?.toString() === hostelId ||
+      admin.role === "hostelManager" ||
+      admin.role === "superAdmin" ||
+      admin.college?.toString() === hostel.college?.toString();
+
+    if (!isAuthorized) {
+      return res.status(403).json({ error: "Unauthorized access" });
+    }
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    // Get active bookings (approved and currently active based on check-in/check-out dates)
+    const activeBookings = await GuestRoom.find({
+      hostel: hostelId,
+      approvalStatus: "approved",
+      checkInDate: { $lte: new Date() },
+      checkOutDate: { $gte: today },
+    })
+      .populate("guest", "name email rollNumber")
+      .sort({ checkInDate: -1 });
+
+    res.json(activeBookings);
+  } catch (error) {
+    console.error("Error fetching active bookings:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
+export const getBookingHistory = async (req, res) => {
+  try {
+    const adminId = req.user._id;
+    const { hostelId } = req.query;
+
+    if (!hostelId) {
+      return res.status(400).json({ error: "Hostel ID is required" });
+    }
+
+    if (!mongoose.Types.ObjectId.isValid(hostelId)) {
+      return res.status(400).json({ error: "Invalid hostel ID" });
+    }
+
+    // Verify admin has access to this hostel
+    const hostel = await Hostel.findById(hostelId);
+    if (!hostel) {
+      return res.status(404).json({ error: "Hostel not found" });
+    }
+
+    const admin = await User.findById(adminId);
+    if (!admin) {
+      return res.status(401).json({ error: "Admin not found" });
+    }
+
+    // Check authorization: admin owns hostel OR is hostelManager OR same college OR superAdmin
+    const isAuthorized =
+      admin.hostel?.toString() === hostelId ||
+      admin.role === "hostelManager" ||
+      admin.role === "superAdmin" ||
+      admin.college?.toString() === hostel.college?.toString();
+
+    if (!isAuthorized) {
+      return res.status(403).json({ error: "Unauthorized access" });
+    }
+
+    // Get all bookings (including cancelled, rejected) for this hostel
+    const allBookings = await GuestRoom.find({
+      hostel: hostelId,
+    })
+      .populate("guest", "name email rollNumber")
+      .populate("approvedBy", "name")
+      .populate("cancelledBy", "name")
+      .sort({ createdAt: -1 });
+
+    res.json(allBookings);
+  } catch (error) {
+    console.error("Error fetching booking history:", error);
     res.status(500).json({ error: "Internal Server Error" });
   }
 };

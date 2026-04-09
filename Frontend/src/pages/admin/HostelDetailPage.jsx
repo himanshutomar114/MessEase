@@ -15,9 +15,6 @@ const HostelDetailPage = () => {
   const [groupChat, setGroupChat] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
-  const [pendingBookings, setPendingBookings] = useState([]);
-  const [rejectingId, setRejectingId] = useState(null);
-  const [rejectionReason, setRejectionReason] = useState("");
   const { loadingAdmin, isAdmin, isVerified } = useAdminAuth();
 
   if (!isVerified) {
@@ -84,51 +81,6 @@ const HostelDetailPage = () => {
       fetchHostelDetails();
     }
   }, [code, reset]);
-
-  useEffect(() => {
-    if (hostelId) {
-      fetchPendingBookings();
-    }
-  }, [hostelId]);
-
-  const fetchPendingBookings = async () => {
-    try {
-      const response = await api.get("/api/guest/pending-bookings", {
-        params: { hostelId: hostelId },
-      });
-      setPendingBookings(response.data);
-    } catch (error) {
-      console.error("Error fetching pending bookings:", error);
-    }
-  };
-
-  const handleApproveBooking = async (bookingId) => {
-    try {
-      await api.patch(`/api/guest/approve-booking/${bookingId}`);
-      toast.success("Booking approved successfully!");
-      fetchPendingBookings();
-    } catch (error) {
-      toast.error(error.response?.data?.error || "Failed to approve booking");
-    }
-  };
-
-  const handleRejectBooking = async (bookingId) => {
-    if (!rejectionReason.trim()) {
-      toast.error("Please provide a rejection reason");
-      return;
-    }
-    try {
-      await api.patch(`/api/guest/reject-booking/${bookingId}`, {
-        rejectionReason,
-      });
-      toast.success("Booking rejected successfully!");
-      setRejectingId(null);
-      setRejectionReason("");
-      fetchPendingBookings();
-    } catch (error) {
-      toast.error(error.response?.data?.error || "Failed to reject booking");
-    }
-  };
 
   const onSubmit = async (data) => {
     try {
@@ -564,105 +516,6 @@ const HostelDetailPage = () => {
                 )}
               </div>
 
-              {/* Pending Guest Room Bookings Section */}
-              <div className="mt-8 border-t border-gray-700 pt-6">
-                <h3 className="text-xl font-semibold text-white mb-4">
-                  Pending Guest Room Bookings ({pendingBookings.length})
-                </h3>
-                {pendingBookings.length === 0 ? (
-                  <p className="text-gray-400 italic">No pending bookings</p>
-                ) : (
-                  <div className="space-y-4">
-                    {pendingBookings.map((booking) => (
-                      <div
-                        key={booking._id}
-                        className="bg-gray-700 p-4 rounded border border-gray-600"
-                      >
-                        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-3">
-                          <div>
-                            <p className="text-gray-400 text-sm">Guest</p>
-                            <p className="font-semibold text-white">
-                              {booking.guest?.name}
-                            </p>
-                            <p className="text-gray-300 text-sm">
-                              {booking.guest?.email}
-                            </p>
-                          </div>
-                          <div>
-                            <p className="text-gray-400 text-sm">Room</p>
-                            <p className="font-semibold text-white text-lg">
-                              {booking.roomNumber}
-                            </p>
-                          </div>
-                          <div>
-                            <p className="text-gray-400 text-sm">Check-in</p>
-                            <p className="text-white">
-                              {new Date(booking.checkInDate).toLocaleDateString()}
-                            </p>
-                          </div>
-                          <div>
-                            <p className="text-gray-400 text-sm">Check-out</p>
-                            <p className="text-white">
-                              {new Date(booking.checkOutDate).toLocaleDateString()}
-                            </p>
-                          </div>
-                        </div>
-
-                        {rejectingId === booking._id ? (
-                          <div className="bg-gray-600 p-3 rounded mt-3">
-                            <textarea
-                              value={rejectionReason}
-                              onChange={(e) =>
-                                setRejectionReason(e.target.value)
-                              }
-                              placeholder="Enter rejection reason..."
-                              rows="2"
-                              className="w-full p-2 bg-gray-700 text-white border border-gray-500 rounded text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
-                            />
-                            <div className="flex gap-2 mt-2">
-                              <button
-                                onClick={() =>
-                                  handleRejectBooking(booking._id)
-                                }
-                                className="flex-1 px-3 py-1 bg-red-600 hover:bg-red-700 text-white rounded text-sm"
-                              >
-                                Confirm Reject
-                              </button>
-                              <button
-                                onClick={() => {
-                                  setRejectingId(null);
-                                  setRejectionReason("");
-                                }}
-                                className="flex-1 px-3 py-1 bg-gray-500 hover:bg-gray-600 text-white rounded text-sm"
-                              >
-                                Cancel
-                              </button>
-                            </div>
-                          </div>
-                        ) : (
-                          <div className="flex gap-2 mt-3">
-                            <button
-                              onClick={() =>
-                                handleApproveBooking(booking._id)
-                              }
-                              className="flex-1 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded font-semibold text-sm"
-                            >
-                              ✓ Approve
-                            </button>
-                            <button
-                              onClick={() => setRejectingId(booking._id)}
-                              className="flex-1 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded font-semibold text-sm"
-                            >
-                              ✗ Reject
-                            </button>
-                          </div>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-
               <div className="flex justify-between items-center mt-6">
                 {hostel.mess ? (
                   <button
@@ -689,6 +542,12 @@ const HostelDetailPage = () => {
                 >
                   See Complaints
                 </Link>
+                <button
+                  onClick={() => navigate(`/admin/hostel/${hostel.code}/bookings`)}
+                  className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded"
+                >
+                  Guest Room Bookings
+                </button>
                 <div>
                   {groupChat ? (
                     <button
