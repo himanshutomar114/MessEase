@@ -159,7 +159,7 @@ const FeesPaymentPage = () => {
       const pageHeight = doc.internal.pageSize.getHeight();
 
       // ========== OFFICIAL HEADER ==========
-      doc.setFillColor(30, 50, 90); // Dark navy - official look
+      doc.setFillColor(70, 105, 145); // Medium blue - official look
       doc.rect(0, 0, pageWidth, 25, "F");
       
       doc.setTextColor(255, 255, 255);
@@ -182,7 +182,7 @@ const FeesPaymentPage = () => {
       doc.text(`Generated: ${new Date().toISOString().split("T")[0]}`, 100, 38);
 
       // ========== BORDER LINE ==========
-      doc.setDrawColor(30, 50, 90);
+      doc.setDrawColor(70, 105, 145);
       doc.setLineWidth(1.5);
       doc.line(14, 42, 196, 42);
 
@@ -297,7 +297,7 @@ const FeesPaymentPage = () => {
       doc.setDrawColor(80, 80, 80);
       doc.rect(14, 195, 182, 25);
       
-      doc.setTextColor(30, 50, 90);
+      doc.setTextColor(70, 105, 145);
       doc.setFontSize(9);
       doc.setFont("helvetica", "bold");
       doc.text("PAYMENT VERIFICATION", 18, 203);
@@ -331,7 +331,7 @@ const FeesPaymentPage = () => {
       doc.text(footerText, pageWidth / 2, pageHeight - 8, { align: "center", maxWidth: 180 });
 
       // ========== OFFICIAL BORDER ==========
-      doc.setDrawColor(30, 50, 90);
+      doc.setDrawColor(70, 105, 145);
       doc.setLineWidth(2);
       doc.rect(5, 5, pageWidth - 10, pageHeight - 10);
 
