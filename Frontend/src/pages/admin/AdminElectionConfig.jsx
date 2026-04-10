@@ -20,7 +20,7 @@ const AdminElectionConfig = () => {
     post: "",
     targetId: "",
     questions: [
-      "Why do you want to be a manager?",
+      "Why are you a perfect candidate for this position?",
       "What are your past experiences?",
       "What changes would you implement?",
     ],
