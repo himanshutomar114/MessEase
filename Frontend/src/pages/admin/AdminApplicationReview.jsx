@@ -125,9 +125,7 @@ const AdminApplicationReview = () => {
           <h1 className="text-3xl font-bold text-blue-300">
             Review Applications:{" "}
             <span className="text-white">
-              {election.type === "messManager"
-                ? "Mess Manager"
-                : "Hostel Manager"}
+              {election.post || "Election"}
             </span>
           </h1>
           <button
@@ -155,7 +153,7 @@ const AdminApplicationReview = () => {
           <div className="flex flex-col md:flex-row justify-between">
             <div>
               <h2 className="font-semibold text-xl mb-4 text-blue-300">
-                {election.type === "messManager" ? "Mess" : "Hostel"}:{" "}
+                Hostel:{" "}
                 <span className="text-white">{election?.name || "N/A"}</span>
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

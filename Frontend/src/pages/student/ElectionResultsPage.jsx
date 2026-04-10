@@ -168,10 +168,7 @@ const ElectionResultsPage = () => {
                 Election Results
               </h1>
               <p className="text-indigo-200 mt-1">
-                {election.type === "messManager"
-                  ? "Mess Manager"
-                  : "Hostel Manager"}{" "}
-                Election
+                {election.post} Election
               </p>
             </div>
             <div className="hidden md:block">
@@ -204,15 +201,13 @@ const ElectionResultsPage = () => {
               <div>
                 <p className="text-gray-400 text-sm">Election Type</p>
                 <p className="text-lg font-medium text-indigo-300">
-                  {election.type === "messManager"
-                    ? "Mess Manager"
-                    : "Hostel Manager"}
+                  {election.post}
                 </p>
               </div>
 
               <div>
                 <p className="text-gray-400 text-sm">
-                  {election.type === "messManager" ? "Mess" : "Hostel"} Name
+                  Hostel Name
                 </p>
                 <p className="text-lg font-medium text-white">
                   {election?.name || "N/A"}

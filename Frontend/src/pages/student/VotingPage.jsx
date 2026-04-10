@@ -125,16 +125,12 @@ const VotingPage = () => {
         <div className="bg-gray-800 rounded-lg shadow-lg border border-gray-700 overflow-hidden">
           <div className="p-6">
             <h1 className="text-2xl font-bold mb-6 text-blue-400">
-              Vote for{" "}
-              {election.type === "messManager"
-                ? "Mess Manager"
-                : "Hostel Manager"}
+              Vote for {election.post}
             </h1>
 
             <div className="mb-6 p-4 bg-gray-750 rounded border border-gray-700">
               <h2 className="font-semibold text-lg mb-2 text-blue-300">
-                {election.type === "messManager" ? "Mess" : "Hostel"}:{" "}
-                {election?.name || "N/A"}
+                Hostel: {election?.name || "N/A"}
               </h2>
               <p className="text-gray-400">Collge: {election?.collegeName}</p>
               <p className="text-gray-400">

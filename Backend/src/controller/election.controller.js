@@ -58,8 +58,17 @@ export const getAllElectionConfigs = async (req, res) => {
 // Create a new election configuration
 export const createElectionConfig = async (req, res) => {
   try {
-    const { type, targetId, questions } = req.body;
+    const { type, targetId, post, questions } = req.body;
     const college = req.user.college;
+
+    // Validate required fields
+    if (!post || post.trim() === "") {
+      return res.status(400).json({
+        success: false,
+        message: "Post/Election type is required",
+      });
+    }
+
     // Validate target exists (mess or hostel)
     let targetExists;
     if (type === "messManager") {
@@ -96,6 +105,7 @@ export const createElectionConfig = async (req, res) => {
 
     const newElectionConfig = new ElectionConfig({
       type,
+      post,
       targetId,
       "applicationPhase.questions": questions,
       college,

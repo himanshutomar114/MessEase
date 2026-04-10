@@ -160,9 +160,7 @@ const ApplicationForm = () => {
             <h1 className="text-2xl font-bold text-white">
               Apply for{" "}
               <span className="text-indigo-300">
-                {election.type === "messManager"
-                  ? "Mess Manager"
-                  : "Hostel Manager"}
+                {election.post}
               </span>
             </h1>
             <p className="text-gray-400 text-sm">
@@ -177,7 +175,7 @@ const ApplicationForm = () => {
           <div className="mb-8 p-5 bg-indigo-900/20 rounded-lg border border-indigo-700/30 flex justify-between items-center">
             <div>
               <h2 className="font-semibold text-lg mb-1 text-indigo-300">
-                {election.type === "messManager" ? "Mess" : "Hostel"}:{" "}
+                Hostel:{" "}
                 <span className="text-white">{election?.name || "N/A"}</span>
               </h2>
               <div className="flex items-center text-gray-300 text-sm">

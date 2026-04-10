@@ -80,9 +80,6 @@ const StudentElectionsPage = () => {
   }
 
   // Group elections by type for better organization
-  const messElections = elections.filter(
-    (election) => election.type === "messManager"
-  );
   const hostelElections = elections.filter(
     (election) => election.type === "hostelManager"
   );
@@ -105,10 +102,7 @@ const StudentElectionsPage = () => {
         <div className="p-5 border-b border-gray-700">
           <div className="flex justify-between items-start">
             <h3 className="font-semibold text-lg text-blue-300">
-              {election.type === "messManager"
-                ? "Mess Manager"
-                : "Hostel Manager"}{" "}
-              Election
+              {election.post} Election
             </h3>
             <span
               className={`px-3 py-1 rounded-full text-xs font-semibold ${statusColor}`}
@@ -337,50 +331,11 @@ const StudentElectionsPage = () => {
               />
             </svg>
             <p className="text-gray-400 text-lg">
-              No active or completed elections found for your mess or hostel.
+              No active or completed elections found for your hostel.
             </p>
           </div>
         ) : (
           <>
-            {/* Mess Elections Section */}
-            {messElections.length > 0 && (
-              <div className="mb-10">
-                <div className="flex items-center mb-6">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-5 w-5 mr-2 text-blue-300"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M13 10V3L4 14h7v7l9-11h-7z"
-                    />
-                  </svg>
-                  <h2 className="text-xl font-semibold text-blue-300">
-                    Mess Elections
-                  </h2>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {messElections.map((election) => {
-                    const { status, color } = getElectionStatus(election);
-                    return (
-                      <ElectionCard
-                        key={election._id}
-                        election={election}
-                        status={status}
-                        statusColor={color}
-                        formatDate={formatDate}
-                      />
-                    );
-                  })}
-                </div>
-              </div>
-            )}
-
             {/* Hostel Elections Section */}
             {hostelElections.length > 0 && (
               <div>
@@ -400,7 +355,7 @@ const StudentElectionsPage = () => {
                     />
                   </svg>
                   <h2 className="text-xl font-semibold text-blue-300">
-                    Hostel Elections
+                    Elections
                   </h2>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

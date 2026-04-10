@@ -16,7 +16,8 @@ const AdminElectionConfig = () => {
   const { loadingAdmin, isAdmin, isVerified } = useAdminAuth();
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
-    type: "messManager",
+    type: "hostelManager",
+    post: "",
     targetId: "",
     questions: [
       "Why do you want to be a manager?",
@@ -44,15 +45,7 @@ const AdminElectionConfig = () => {
         setMesses(messesRes.data.data);
         setElectionConfigs(configsRes.data.data);
 
-        if (formData.type === "messManager" && messesRes.data.data.length > 0) {
-          setFormData((prev) => ({
-            ...prev,
-            targetId: messesRes.data.data[0]._id,
-          }));
-        } else if (
-          formData.type === "hostelManager" &&
-          hostelsRes.data.hostels.length > 0
-        ) {
+        if (hostelsRes.data.hostels.length > 0) {
           setFormData((prev) => ({
             ...prev,
             targetId: hostelsRes.data.hostels[0]._id,
@@ -73,19 +66,7 @@ const AdminElectionConfig = () => {
     fetchData();
   }, []);
 
-  const handleTypeChange = (e) => {
-    const newType = e.target.value;
-    setFormData((prev) => ({
-      ...prev,
-      type: newType,
-      targetId:
-        newType === "messManager" && messes.length > 0
-          ? messes[0]._id
-          : newType === "hostelManager" && hostels.length > 0
-            ? hostels[0]._id
-            : "",
-    }));
-  };
+
 
   const handleQuestionChange = (index, value) => {
     const newQuestions = [...formData.questions];
@@ -228,22 +209,26 @@ const AdminElectionConfig = () => {
               <form onSubmit={handleSubmit} className="space-y-5">
                 <div>
                   <label className="block text-gray-300 text-sm font-medium mb-2">
-                    Election Type
+                    Post/Position Name
                   </label>
-                  <select
-                    value={formData.type}
-                    onChange={handleTypeChange}
+                  <input
+                    type="text"
+                    value={formData.post}
+                    onChange={(e) =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        post: e.target.value,
+                      }))
+                    }
+                    placeholder="e.g., President, Vice President, Treasurer, etc."
                     className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
                     required
-                  >
-                    <option value="messManager">Mess Manager</option>
-                    <option value="hostelManager">Hostel Manager</option>
-                  </select>
+                  />
                 </div>
 
                 <div>
                   <label className="block text-gray-300 text-sm font-medium mb-2">
-                    {formData.type === "messManager" ? "Mess" : "Hostel"}
+                    Select Hostel
                   </label>
                   <select
                     value={formData.targetId}
@@ -256,17 +241,18 @@ const AdminElectionConfig = () => {
                     className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
                     required
                   >
-                    {formData.type === "messManager"
-                      ? messes.map((mess) => (
-                          <option key={mess._id} value={mess._id}>
-                            {mess.name}
-                          </option>
-                        ))
-                      : hostels.map((hostel) => (
-                          <option key={hostel._id} value={hostel._id}>
-                            {hostel.name}
-                          </option>
-                        ))}
+                    <option value="">
+                      Choose a Hostel...
+                    </option>
+                    {hostels.length > 0 ? (
+                      hostels.map((hostel) => (
+                        <option key={hostel._id} value={hostel._id}>
+                          {hostel.name}
+                        </option>
+                      ))
+                    ) : (
+                      <option disabled>No hostels available</option>
+                    )}
                   </select>
                 </div>
 
@@ -409,11 +395,11 @@ const AdminElectionConfig = () => {
                       <div className="flex flex-col md:flex-row justify-between items-start gap-4">
                         <div>
                           <h3 className="font-semibold text-lg text-blue-300">
-                            {config.type === "messManager"
-                              ? "Mess Manager"
-                              : "Hostel Manager"}
-                            : {config?.name || "N/A"}
+                            {config.post}
                           </h3>
+                          <p className="text-sm text-gray-300 mt-1 font-medium">
+                            🏢 Hostel: {config?.name || "N/A"}
+                          </p>
                           <p className="text-sm text-gray-400 mt-1">
                             Created:{" "}
                             {new Date(config.createdAt).toLocaleString()}

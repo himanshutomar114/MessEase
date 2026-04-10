@@ -48,6 +48,10 @@ const ElectionConfigSchema = new Schema(
       enum: ["messManager", "hostelManager"],
       required: true,
     },
+    post: {
+      type: String,
+      default: "Hostel Manager",
+    },
     targetId: {
       // ID of the mess or hostel
       type: Schema.Types.ObjectId,
