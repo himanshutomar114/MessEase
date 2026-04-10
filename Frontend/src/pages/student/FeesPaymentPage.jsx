@@ -262,7 +262,9 @@ const FeesPaymentPage = () => {
       // Simple formal table-like format for amount
       doc.text("Amount Paid:", 20, 132);
       doc.setFont("helvetica", "bold");
-      doc.text(`Rs. ${payment.amount.toFixed(2)}`, 170, 132, { align: "right" });
+      doc.setFontSize(14);
+      doc.text(`Rs.  ${payment.amount.toFixed(2)}`, 170, 132, { align: "right" });
+      doc.setFontSize(9);
       
       // Formal dividing line
       doc.setDrawColor(100, 100, 100);
