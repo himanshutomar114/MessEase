@@ -6,7 +6,7 @@ import api from "../../utils/axiosRequest";
 import AdminHeader from "../../components/AdminHeader";
 import useAdminAuth from "../../hooks/useAdminAuth";
 import { Link } from "react-router-dom";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Trash2 } from "lucide-react";
 
 const HostelDetailPage = () => {
   const { code } = useParams();
@@ -44,6 +44,35 @@ const HostelDetailPage = () => {
     "accountant",
     "warden",
   ];
+
+  const handleDeleteGroupChat = async () => {
+    try {
+      const confirmDelete = window.confirm(
+        "Are you sure you want to delete this group chat? This action cannot be undone."
+      );
+
+      if (!confirmDelete) return;
+
+      console.log("Deleting group chat for hostelId:", hostelId);
+
+      const response = await api.delete("/api/admin/deleteGroupChat", {
+        data: { hostelId },
+      });
+
+      console.log("Delete response:", response);
+
+      if (response.status === 200) {
+        toast.success("Group chat deleted successfully");
+        setGroupChat(false);
+      }
+    } catch (error) {
+      console.error("Error deleting group chat:", error);
+      console.error("Error response data:", error.response?.data);
+      toast.error(
+        error.response?.data?.message || "Failed to delete group chat"
+      );
+    }
+  };
 
   // Fetch hostel details
   useEffect(() => {
@@ -548,14 +577,24 @@ const HostelDetailPage = () => {
                 >
                   Guest Room Bookings
                 </button>
-                <div>
+                <div className="flex gap-2">
                   {groupChat ? (
-                    <button
-                      className="y-5 display: inline bg-gray-500 text-white px-4 py-2 rounded"
-                      disabled
-                    >
-                      GroupChat Created
-                    </button>
+                    <>
+                      <button
+                        className="y-5 display: inline bg-gray-500 text-white px-4 py-2 rounded cursor-default"
+                        disabled
+                      >
+                        GroupChat Created
+                      </button>
+                      <button
+                        onClick={handleDeleteGroupChat}
+                        className="bg-red-500 hover:bg-red-600 text-white px-3 py-2 rounded flex items-center gap-2"
+                        title="Delete group chat"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                        Delete
+                      </button>
+                    </>
                   ) : (
                     <button
                       className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded"

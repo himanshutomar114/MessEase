@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef } from "react";
-import { useLocation, useParams } from "react-router-dom";
+import { useLocation, useParams, useNavigate } from "react-router-dom";
 import api from "../../utils/axiosRequest";
+import toast from "react-hot-toast";
 import { io } from "socket.io-client";
 import {
   Send,
@@ -33,6 +34,7 @@ export const GroupChat = () => {
   const { user: reduxUser } = useSelector((state) => state.auth);
   const { code } = useParams();
   const location = useLocation();
+  const navigate = useNavigate();
   const hostelId = reduxUser.hostel || location.state.hostelId || "";
   const userId = reduxUser._id || "";
   const userName = reduxUser.name || " ";
@@ -558,6 +560,31 @@ export const GroupChat = () => {
     }
   };
 
+  const deleteGroupChat = async () => {
+    try {
+      const confirmDelete = window.confirm(
+        "Are you sure you want to delete this group chat? This action cannot be undone."
+      );
+
+      if (!confirmDelete) return;
+
+      const response = await api.delete("/api/admin/deleteGroupChat", {
+        data: { hostelId },
+      });
+
+      if (response.status === 200) {
+        toast.success("Group chat deleted successfully");
+        // Redirect to admin dashboard or hostel details page
+        navigate(`/admin/hostel/${code}`);
+      }
+    } catch (error) {
+      console.error("Error deleting group chat:", error);
+      toast.error(
+        error.response?.data?.message || "Failed to delete group chat"
+      );
+    }
+  };
+
   // Send message
   const sendMessage = async (e) => {
     // Prevent default form submission
@@ -920,6 +947,15 @@ export const GroupChat = () => {
                     {showStarredMessages ? "Hide Starred" : "Show Starred"}
                   </span>
                 </button>
+                {role === "admin" && (
+                  <button
+                    onClick={deleteGroupChat}
+                    className="flex items-center text-red-400 hover:text-red-500"
+                    title="Delete group chat"
+                  >
+                    <Trash2 className="w-5 h-5" />
+                  </button>
+                )}
               </div>
             </div>
 

@@ -16,6 +16,7 @@ import {
   getChats,
   uploadImage,
   uploadAudio,
+  deleteGroupChat,
 } from "../controller/admin.controller.js";
 import { verifyJWT } from "../middleware/auth.middleware.js";
 import { upload } from "../middleware/multer.middleware.js";
@@ -51,6 +52,7 @@ router.get("/students/filter-options", verifyJWT, getFilterOptions);
 router.get("/students/:id", verifyJWT, getStudentById);
 router.put("/students/:id/toggle-block", verifyJWT, toggleBlockStudent);
 router.post("/createGroupChat", verifyJWT, createGroupChat);
+router.delete("/deleteGroupChat", verifyJWT, deleteGroupChat);
 router.get("/getChats", verifyJWT, getChats);
 router.post(
   "/uploadImage",

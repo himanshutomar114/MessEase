@@ -691,3 +691,31 @@ export const uploadAudio = asyncHandler(async (req, res) => {
     return res.status(500).json({ error: "Upload failed" });
   }
 });
+
+export const deleteGroupChat = asyncHandler(async (req, res) => {
+  try {
+    const { hostelId } = req.body;
+
+    if (!hostelId) {
+      return res.status(400).json({ message: "Hostel ID is required" });
+    }
+
+    // Find and delete the group chat
+    const deletedChat = await GroupChat.findOneAndDelete({ hostelId });
+
+    if (!deletedChat) {
+      return res.status(404).json({ message: "Group chat not found" });
+    }
+
+    // Update hostel to set chatCreated to false
+    await Hostel.findByIdAndUpdate(hostelId, { chatCreated: false });
+
+    return res.status(200).json({
+      message: "Group chat deleted successfully",
+      success: true,
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+});
