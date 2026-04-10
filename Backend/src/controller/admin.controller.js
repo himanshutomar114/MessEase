@@ -719,3 +719,177 @@ export const deleteGroupChat = asyncHandler(async (req, res) => {
     return res.status(500).json({ message: "Internal server error" });
   }
 });
+
+// Diagnostic endpoint to check payment visibility issues
+export const getPaymentDiagnostics = asyncHandler(async (req, res) => {
+  try {
+    // Get all hostels with their student count
+    const hostels = await Hostel.find().select("_id name code");
+    
+    const diagnostics = [];
+    
+    for (const hostel of hostels) {
+      // Count students assigned to this hostel
+      const studentCount = await User.countDocuments({ 
+        hostel: hostel._id,
+        role: "student" 
+      });
+      
+      // Get payments for this hostel
+      const payments = await User.countDocuments({ 
+        hostel: hostel._id,
+        role: "student",
+      });
+      
+      const Payment = (await import("../model/payment.model.js")).default;
+      const paymentsData = await Payment.find({ hostelId: hostel._id });
+      
+      diagnostics.push({
+        hostelId: hostel._id,
+        hostelName: hostel.name,
+        hostelCode: hostel.code,
+        studentCount,
+        totalPayments: paymentsData.length,
+        activePayments: paymentsData.filter(p => p.isActive).length,
+        payments: paymentsData.map(p => ({
+          id: p._id,
+          title: p.title,
+          amount: p.amount,
+          isActive: p.isActive,
+          dueDate: p.dueDate,
+        }))
+      });
+    }
+    
+    // Also get students without hostels
+    const studentsWithoutHostels = await User.find({
+      hostel: null,
+      role: "student"
+    }).select("_id name email");
+    
+    return res.status(200).json({
+      success: true,
+      data: {
+        diagnostics,
+        studentsWithoutHostels: {
+          count: studentsWithoutHostels.length,
+          students: studentsWithoutHostels
+        },
+        totalHostels: diagnostics.length,
+        totalStudents: diagnostics.reduce((sum, h) => sum + h.studentCount, 0),
+        totalPayments: diagnostics.reduce((sum, h) => sum + h.totalPayments, 0),
+      }
+    });
+  } catch (error) {
+    console.error("Error in getPaymentDiagnostics:", error);
+    return res
+      .status(500)
+      .json({ success: false, message: "Server Error", error: error.message });
+  }
+});
+
+// Bulk assign students to hostel
+export const bulkAssignStudentsToHostel = asyncHandler(async (req, res) => {
+  try {
+    const { hostelId, studentIds } = req.body;
+
+    if (!hostelId || !Array.isArray(studentIds) || studentIds.length === 0) {
+      throw new ApiError(400, "Invalid hostelId or studentIds");
+    }
+
+    // Verify hostel exists
+    const hostel = await Hostel.findById(hostelId);
+    if (!hostel) {
+      throw new ApiError(404, "Hostel not found");
+    }
+
+    // Bulk update students
+    const result = await User.updateMany(
+      { _id: { $in: studentIds }, role: "student" },
+      { $set: { hostel: hostelId, mess: hostel.mess } }
+    );
+
+    return res.status(200).json({
+      success: true,
+      message: `Successfully assigned hostel to ${result.modifiedCount} students`,
+      data: {
+        modifiedCount: result.modifiedCount,
+        matchedCount: result.matchedCount,
+      }
+    });
+  } catch (error) {
+    console.error("Error in bulkAssignStudentsToHostel:", error);
+    if (error instanceof ApiError) {
+      return res
+        .status(error.statusCode)
+        .json({ success: false, message: error.message });
+    }
+    return res
+      .status(500)
+      .json({ success: false, message: "Server Error", error: error.message });
+  }
+});
+
+// Debug endpoint for payments
+export const debugPayments = asyncHandler(async (req, res) => {
+  try {
+    const Payment = (await import("../model/payment.model.js")).default;
+    
+    // Get all payments in the system
+    const allPayments = await Payment.find().populate("hostelId", "name code _id");
+    
+    // Get all hostels
+    const allHostels = await Hostel.find().select("_id name code");
+    
+    // For each student, show which hostel they're in and what payments should show
+    const students = await User.find({ role: "student" })
+      .select("_id name email hostel")
+      .populate("hostel", "name code _id");
+
+    const studentPaymentMappings = students.map(student => {
+      const hostelId = student.hostel?._id?.toString();
+      const studentPayments = allPayments.filter(p => 
+        p.hostelId?._id?.toString() === hostelId && p.isActive
+      );
+      
+      return {
+        studentId: student._id,
+        studentName: student.name,
+        studentEmail: student.email,
+        hostelId: student.hostel?._id,
+        hostelName: student.hostel?.name,
+        hostelCode: student.hostel?.code,
+        assignedPayments: studentPayments.length,
+        payments: studentPayments.map(p => ({
+          id: p._id,
+          title: p.title,
+          amount: p.amount,
+          isActive: p.isActive,
+        }))
+      };
+    });
+
+    return res.status(200).json({
+      success: true,
+      data: {
+        totalPayments: allPayments.length,
+        totalHostels: allHostels.length,
+        totalStudents: students.length,
+        studentPaymentMappings,
+        allPayments: allPayments.map(p => ({
+          id: p._id,
+          hostelId: p.hostelId?._id,
+          hostelName: p.hostelId?.name,
+          title: p.title,
+          amount: p.amount,
+          isActive: p.isActive,
+        }))
+      }
+    });
+  } catch (error) {
+    console.error("Error in debugPayments:", error);
+    return res
+      .status(500)
+      .json({ success: false, message: "Server Error", error: error.message });
+  }
+});

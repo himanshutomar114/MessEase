@@ -17,6 +17,9 @@ import {
   uploadImage,
   uploadAudio,
   deleteGroupChat,
+  getPaymentDiagnostics,
+  bulkAssignStudentsToHostel,
+  debugPayments,
 } from "../controller/admin.controller.js";
 import { verifyJWT } from "../middleware/auth.middleware.js";
 import { upload } from "../middleware/multer.middleware.js";
@@ -68,4 +71,7 @@ router.post(
   uploadAudioMulter.single("chatAudio"),
   uploadAudio
 );
+router.get("/payment-diagnostics", verifyJWT, getPaymentDiagnostics);
+router.post("/bulk-assign-students", verifyJWT, bulkAssignStudentsToHostel);
+router.get("/debug-payments", verifyJWT, debugPayments);
 export default router;

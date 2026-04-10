@@ -17,7 +17,7 @@ const razorpay = new Razorpay({
 // Create or update a payment for a hostel
 export const createOrUpdatePayment = async (req, res) => {
   try {
-    const { hostelId, amount, title, description, dueDate, isActive } =
+    const { hostelId, amount, title, description, dueDate, isActive, paymentId } =
       req.body;
 
     if (!hostelId || !amount || !title) {
@@ -33,9 +33,16 @@ export const createOrUpdatePayment = async (req, res) => {
         .json({ success: false, message: "Hostel not found" });
     }
 
-    let payment = await Payment.findOne({ hostelId });
+    let payment;
 
-    if (payment) {
+    // If paymentId is provided, update that specific payment
+    if (paymentId) {
+      payment = await Payment.findById(paymentId);
+      if (!payment) {
+        return res
+          .status(404)
+          .json({ success: false, message: "Payment not found" });
+      }
       payment.amount = amount;
       payment.title = title;
       payment.description = description || payment.description;
@@ -43,6 +50,7 @@ export const createOrUpdatePayment = async (req, res) => {
       payment.isActive = isActive !== undefined ? isActive : payment.isActive;
       payment.updatedAt = Date.now();
     } else {
+      // Create a new payment (allow multiple payments per hostel)
       payment = new Payment({
         hostelId,
         amount,
@@ -66,7 +74,9 @@ export const createOrUpdatePayment = async (req, res) => {
 // Get all payments (for admin)
 export const getAllPayments = async (req, res) => {
   try {
-    const payments = await Payment.find().populate("hostelId", "name");
+    const payments = await Payment.find()
+      .populate("hostelId", "name code")
+      .sort({ createdAt: -1 });
     return res.status(200).json({ success: true, data: payments });
   } catch (error) {
     console.error("Error in getAllPayments:", error);
@@ -76,19 +86,19 @@ export const getAllPayments = async (req, res) => {
   }
 };
 
-// Get payment by hostel ID
+// Get payment by hostel ID (now returns all payments for a hostel)
 export const getPaymentByHostel = async (req, res) => {
   try {
     const { hostelId } = req.params;
-    const payment = await Payment.findOne({ hostelId });
+    const payments = await Payment.find({ hostelId }).sort({ createdAt: -1 });
 
-    if (!payment) {
+    if (payments.length === 0) {
       return res
         .status(404)
-        .json({ success: false, message: "No payment found for this hostel" });
+        .json({ success: false, message: "No payments found for this hostel", data: [] });
     }
 
-    return res.status(200).json({ success: true, data: payment });
+    return res.status(200).json({ success: true, data: payments });
   } catch (error) {
     console.error("Error in getPaymentByHostel:", error);
     return res
@@ -128,44 +138,101 @@ export const getStudentPaymentDetails = async (req, res) => {
     const userId = req.user.id;
     const user = await User.findById(userId);
 
-    if (!user || !user.hostel) {
+    console.log("User ID:", userId);
+    console.log("User:", user);
+
+    if (!user) {
       return res
-        .status(400)
-        .json({ success: false, message: "User not assigned to any hostel" });
+        .status(404)
+        .json({ success: false, message: "User not found" });
     }
 
-    const payment = await Payment.findOne({ hostelId: user.hostel });
-
-    if (!payment || !payment.isActive) {
+    if (!user.hostel) {
+      console.log("User has no hostel assigned");
       return res.status(200).json({
         success: true,
         data: {
           paymentExists: false,
-          message: "No payment enabled for your hostel/mess",
+          message: "You are not assigned to any hostel/mess",
+          payments: [],
         },
       });
     }
 
-    const hasPaid = payment.paidUsers.some(
-      (paid) => paid.userId.toString() === userId
-    );
-    const paymentDetails = payment.paidUsers.find(
-      (paid) => paid.userId.toString() === userId
-    );
+    console.log("User's hostel:", user.hostel);
+
+    // Get all active payments for the student's hostel
+    console.log("Searching for payments with hostelId:", user.hostel.toString());
+    
+    // First, get all payments (active and inactive) for debugging
+    const allPayments = await Payment.find({ hostelId: user.hostel })
+      .populate("hostelId", "name code")
+      .sort({ createdAt: -1 });
+    
+    console.log("ALL payments found (active + inactive):", allPayments.length);
+    console.log("All payments:", JSON.stringify(allPayments, null, 2));
+    
+    // Now get only active payments
+    const payments = await Payment.find({ 
+      hostelId: user.hostel,
+      isActive: true 
+    })
+      .populate("hostelId", "name code")
+      .sort({ createdAt: -1 });
+
+    console.log("Active payments found:", payments.length);
+    console.log("Payments:", payments);
+
+    if (payments.length === 0) {
+      // Return all payments (active and inactive) in the response for debugging
+      console.log("No active payments found. Returning debug info with all payments.");
+      return res.status(200).json({
+        success: true,
+        data: {
+          paymentExists: false,
+          message: "No active payments found for your hostel/mess",
+          payments: [],
+          hostelId: user.hostel,
+          debug: {
+            noOfAllPayments: allPayments.length,
+            allPayments: allPayments.map(p => ({
+              id: p._id,
+              title: p.title,
+              isActive: p.isActive,
+              amount: p.amount,
+            }))
+          }
+        },
+      });
+    }
+
+    // For each payment, check if student has paid and get payment details
+    const paymentsWithStatus = payments.map(payment => {
+      const hasPaid = payment.paidUsers.some(
+        (paid) => paid.userId.toString() === userId
+      );
+      const paymentDetails = payment.paidUsers.find(
+        (paid) => paid.userId.toString() === userId
+      );
+
+      return {
+        id: payment._id,
+        amount: payment.amount,
+        title: payment.title,
+        description: payment.description,
+        dueDate: payment.dueDate,
+        hostelId: payment.hostelId,
+        hasPaid,
+        paymentDetails,
+      };
+    });
 
     return res.status(200).json({
       success: true,
       data: {
         paymentExists: true,
-        payment: {
-          id: payment._id,
-          amount: payment.amount,
-          title: payment.title,
-          description: payment.description,
-          dueDate: payment.dueDate,
-        },
-        hasPaid,
-        paymentDetails,
+        payments: paymentsWithStatus,
+        hostelId: user.hostel,
       },
     });
   } catch (error) {

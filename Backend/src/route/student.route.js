@@ -12,6 +12,7 @@ import {
   uploadProfilePicture,
   changePassword,
   forgotPassword,
+  getStudentDiagnostics,
 } from "../controller/student.controller.js";
 import { verifyJWT } from "../middleware/auth.middleware.js";
 import { upload } from "../middleware/multer.middleware.js";
@@ -28,6 +29,7 @@ router.post("/logout", verifyJWT, logout);
 router.post("/verify-token", verifyJWT, verifyToken);
 router.post("/getStudent/:id", verifyJWT, getStudent);
 router.get("/check-hostel-assignment", verifyJWT, checkHostelAssignment);
+router.get("/diagnostics", verifyJWT, getStudentDiagnostics);
 router.patch("/update-profile", verifyJWT, updateUserProfile);
 router.post(
   "/upload-profile-picture",

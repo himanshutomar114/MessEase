@@ -510,6 +510,74 @@ export const checkHostelAssignment = asyncHandler(async (req, res) => {
     );
 });
 
+// Student diagnostic endpoint - shows hostel assignment and related payments
+export const getStudentDiagnostics = asyncHandler(async (req, res) => {
+  try {
+    const userId = req.user?._id;
+    const user = await User.findById(userId).populate("hostel", "name code _id");
+
+    if (!user) {
+      throw new ApiError(404, "User not found");
+    }
+
+    // Get all payments for the student's hostel
+    const Payment = (await import("../model/payment.model.js")).default;
+    
+    const allPaymentsForHostel = user.hostel 
+      ? await Payment.find({ hostelId: user.hostel._id })
+      : [];
+
+    const activePayments = allPaymentsForHostel.filter(p => p.isActive);
+    const inactivePayments = allPaymentsForHostel.filter(p => !p.isActive);
+
+    return res.status(200).json({
+      success: true,
+      data: {
+        student: {
+          id: user._id,
+          name: user.name,
+          email: user.email,
+          role: user.role,
+        },
+        hostelAssignment: user.hostel
+          ? {
+              hostelId: user.hostel._id,
+              hostelName: user.hostel.name,
+              hostelCode: user.hostel.code,
+              assigned: true,
+            }
+          : {
+              assigned: false,
+              message: "Student is NOT assigned to any hostel",
+            },
+        payments: {
+          totalPayments: allPaymentsForHostel.length,
+          activePayments: activePayments.length,
+          inactivePayments: inactivePayments.length,
+          activePaymentsList: activePayments.map(p => ({
+            id: p._id,
+            title: p.title,
+            amount: p.amount,
+            dueDate: p.dueDate,
+            isActive: p.isActive,
+          })),
+          inactivePaymentsList: inactivePayments.map(p => ({
+            id: p._id,
+            title: p.title,
+            amount: p.amount,
+            isActive: p.isActive,
+          })),
+        },
+      }
+    });
+  } catch (error) {
+    console.error("Error in getStudentDiagnostics:", error);
+    return res
+      .status(500)
+      .json({ success: false, message: "Server Error", error: error.message });
+  }
+});
+
 // Update user profile including hostel
 export const updateUserProfile = asyncHandler(async (req, res) => {
   const { name, branch, year, room, phoneNumber, hostelId, rollNumber } =

@@ -378,6 +378,7 @@ function StudentHome() {
                     ? "bg-gray-700 text-gray-400 cursor-not-allowed"
                     : "bg-gray-700/80 text-white hover:bg-gray-600 transition-all duration-300"
                 }`}
+                onClick={() => !isBlocked && navigate("/student/profile")}
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -396,6 +397,7 @@ function StudentHome() {
                     ? "bg-gray-700 text-gray-400 cursor-not-allowed"
                     : "bg-gray-700/80 text-white hover:bg-gray-600 transition-all duration-300"
                 }`}
+                onClick={() => !isBlocked && navigate("/student/profile")}
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -418,6 +420,7 @@ function StudentHome() {
                     ? "bg-gray-700 text-gray-400 cursor-not-allowed"
                     : "bg-gray-700/80 text-white hover:bg-gray-600 transition-all duration-300"
                 }`}
+                onClick={() => !isBlocked && navigate("/student/fees")}
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -461,6 +464,7 @@ function StudentHome() {
                     ? "bg-gray-700 text-gray-400 cursor-not-allowed"
                     : "bg-gray-700/80 text-white hover:bg-gray-600 transition-all duration-300"
                 }`}
+                onClick={() => !isBlocked && navigate("/student/update-profile")}
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"

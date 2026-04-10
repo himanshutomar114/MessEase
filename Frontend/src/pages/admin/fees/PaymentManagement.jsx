@@ -95,9 +95,9 @@ const PaymentManagement = () => {
     }
   };
 
-  // Find payment for a hostel
-  const findPaymentForHostel = (hostelId) => {
-    return payments.find((payment) => payment.hostelId._id === hostelId);
+  // Find all payments for a hostel
+  const getPaymentsForHostel = (hostelId) => {
+    return payments.filter((payment) => payment.hostelId._id === hostelId);
   };
 
   if (loading || loadingAdmin) {
@@ -166,12 +166,7 @@ const PaymentManagement = () => {
               Active Payments
             </h3>
             <p className="text-3xl font-bold mt-2">
-              {
-                hostels.filter((h) => {
-                  const payment = findPaymentForHostel(h._id);
-                  return payment && payment.isActive;
-                }).length
-              }
+              {payments.filter((p) => p.isActive).length}
             </p>
           </div>
           <div className="bg-gradient-to-r from-green-900 to-green-800 p-6 rounded-xl shadow-lg border border-green-700">
@@ -180,12 +175,9 @@ const PaymentManagement = () => {
             </h3>
             <p className="text-3xl font-bold mt-2">
               ₹
-              {hostels
-                .reduce((sum, h) => {
-                  const payment = findPaymentForHostel(h._id);
-                  return (
-                    sum + (payment && payment.isActive ? payment.amount : 0)
-                  );
+              {payments
+                .reduce((sum, p) => {
+                  return sum + (p.isActive ? p.amount : 0);
                 }, 0)
                 .toLocaleString()}
             </p>
@@ -195,12 +187,12 @@ const PaymentManagement = () => {
               Pending Configuration
             </h3>
             <p className="text-3xl font-bold mt-2">
-              {hostels.filter((h) => !findPaymentForHostel(h._id)).length}
+              {hostels.filter((h) => getPaymentsForHostel(h._id).length === 0).length}
             </p>
           </div>
         </div>
 
-        {/* Table */}
+        {/* Table - Shows all payments */}
         <div className="bg-gray-800 shadow-xl rounded-xl overflow-hidden border border-gray-700">
           <table className="min-w-full divide-y divide-gray-700">
             <thead className="bg-gray-900">
@@ -209,7 +201,10 @@ const PaymentManagement = () => {
                   Hostel Name
                 </th>
                 <th className="px-6 py-4 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
-                  Payment Status
+                  Payment Title
+                </th>
+                <th className="px-6 py-4 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                  Status
                 </th>
                 <th className="px-6 py-4 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
                   Amount
@@ -223,51 +218,43 @@ const PaymentManagement = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-700">
-              {hostels.map((hostel) => {
-                const payment = findPaymentForHostel(hostel._id);
-
-                return (
+              {payments.length > 0 ? (
+                payments.map((payment) => (
                   <tr
-                    key={hostel._id}
+                    key={payment._id}
                     className="hover:bg-gray-750 transition duration-150"
                   >
                     <td className="px-6 py-5 whitespace-nowrap">
                       <div className="text-sm font-medium text-gray-200">
-                        {hostel.name}
+                        {payment.hostelId?.name || "Unknown"}
                       </div>
                       <div className="text-xs text-gray-400">
-                        Code: {hostel.code}
+                        Code: {payment.hostelId?.code || "-"}
                       </div>
                     </td>
                     <td className="px-6 py-5 whitespace-nowrap">
-                      {payment ? (
-                        <span
-                          className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                            payment.isActive
-                              ? "bg-green-900/60 text-green-300 border border-green-600"
-                              : "bg-red-900/60 text-red-300 border border-red-600"
-                          }`}
-                        >
-                          {payment.isActive ? "Enabled" : "Disabled"}
-                        </span>
-                      ) : (
-                        <span className="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-700/60 text-gray-300 border border-gray-600">
-                          Not Configured
-                        </span>
-                      )}
+                      <div className="text-sm text-gray-300">
+                        {payment.title}
+                      </div>
+                    </td>
+                    <td className="px-6 py-5 whitespace-nowrap">
+                      <span
+                        className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                          payment.isActive
+                            ? "bg-green-900/60 text-green-300 border border-green-600"
+                            : "bg-red-900/60 text-red-300 border border-red-600"
+                        }`}
+                      >
+                        {payment.isActive ? "Active" : "Inactive"}
+                      </span>
                     </td>
                     <td className="px-6 py-5 whitespace-nowrap">
                       <div className="text-sm font-medium text-gray-200">
-                        {payment ? `₹${payment.amount.toLocaleString()}` : "-"}
+                        ₹{payment.amount.toLocaleString()}
                       </div>
-                      {payment && payment.amount && (
-                        <div className="text-xs text-gray-400">
-                          per semester
-                        </div>
-                      )}
                     </td>
                     <td className="px-6 py-5 whitespace-nowrap">
-                      {payment && payment.dueDate ? (
+                      {payment.dueDate ? (
                         <>
                           <div className="text-sm font-medium text-gray-200">
                             {new Date(payment.dueDate).toLocaleDateString()}
@@ -284,65 +271,81 @@ const PaymentManagement = () => {
                     </td>
                     <td className="px-6 py-5 whitespace-nowrap text-sm font-medium">
                       <div className="flex justify-center space-x-3">
-                        {payment ? (
-                          <>
-                            <button
-                              onClick={() => togglePaymentStatus(payment._id)}
-                              className={`p-2 rounded-full ${
-                                payment.isActive
-                                  ? "bg-green-900/30 text-green-400 hover:bg-green-900/50"
-                                  : "bg-red-900/30 text-red-400 hover:bg-red-900/50"
-                              }`}
-                              title={
-                                payment.isActive
-                                  ? "Disable Payment"
-                                  : "Enable Payment"
-                              }
-                            >
-                              {payment.isActive ? (
-                                <FaToggleOn size={18} />
-                              ) : (
-                                <FaToggleOff size={18} />
-                              )}
-                            </button>
-                            <Link
-                              to={`/admin/payment/edit/${payment._id}/${hostel.code}`}
-                              className="p-2 rounded-full bg-indigo-900/30 text-indigo-400 hover:bg-indigo-900/50"
-                              title="Edit Payment"
-                            >
-                              <FaEdit size={16} />
-                            </Link>
-                            <Link
-                              to={`/admin/payment/paid-users/${payment._id}`}
-                              className="p-2 rounded-full bg-blue-900/30 text-blue-400 hover:bg-blue-900/50"
-                              title="View Paid Users"
-                            >
-                              <FaEye size={16} />
-                            </Link>
-                            <button
-                              onClick={() => deletePayment(payment._id)}
-                              className="p-2 rounded-full bg-red-900/30 text-red-400 hover:bg-red-900/50"
-                              title="Delete Payment"
-                            >
-                              <FaTrash size={16} />
-                            </button>
-                          </>
-                        ) : (
-                          <Link
-                            to={`/admin/payment/create/${hostel.code}`}
-                            className="p-2 rounded-full bg-green-900/30 text-green-400 hover:bg-green-900/50"
-                            title="Create Payment"
-                          >
-                            <FaPlus size={16} />
-                          </Link>
-                        )}
+                        <button
+                          onClick={() => togglePaymentStatus(payment._id)}
+                          className={`p-2 rounded-full ${
+                            payment.isActive
+                              ? "bg-green-900/30 text-green-400 hover:bg-green-900/50"
+                              : "bg-red-900/30 text-red-400 hover:bg-red-900/50"
+                          }`}
+                          title={
+                            payment.isActive
+                              ? "Disable Payment"
+                              : "Enable Payment"
+                          }
+                        >
+                          {payment.isActive ? (
+                            <FaToggleOn size={18} />
+                          ) : (
+                            <FaToggleOff size={18} />
+                          )}
+                        </button>
+                        <Link
+                          to={`/admin/payment/edit/${payment._id}/${payment.hostelId?._id}`}
+                          className="p-2 rounded-full bg-indigo-900/30 text-indigo-400 hover:bg-indigo-900/50"
+                          title="Edit Payment"
+                        >
+                          <FaEdit size={16} />
+                        </Link>
+                        <Link
+                          to={`/admin/payment/paid-users/${payment._id}`}
+                          className="p-2 rounded-full bg-blue-900/30 text-blue-400 hover:bg-blue-900/50"
+                          title="View Paid Users"
+                        >
+                          <FaEye size={16} />
+                        </Link>
+                        <button
+                          onClick={() => deletePayment(payment._id)}
+                          className="p-2 rounded-full bg-red-900/30 text-red-400 hover:bg-red-900/50"
+                          title="Delete Payment"
+                        >
+                          <FaTrash size={16} />
+                        </button>
                       </div>
                     </td>
                   </tr>
-                );
-              })}
+                ))
+              ) : (
+                <tr>
+                  <td colSpan="6" className="px-6 py-8 text-center">
+                    <p className="text-gray-400 text-sm">
+                      No payments configured yet. Click "Add Payment" for a hostel to get started.
+                    </p>
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
+        </div>
+
+        {/* Quick Action: Add Payment Button */}
+        <div className="mt-6 flex justify-start">
+          <select
+            onChange={(e) => {
+              if (e.target.value) {
+                navigate(`/admin/payment/create/${e.target.value}`);
+              }
+            }}
+            className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg flex items-center cursor-pointer"
+            defaultValue=""
+          >
+            <option value="">+ Add New Payment</option>
+            {hostels.map((hostel) => (
+              <option key={hostel._id} value={hostel._id}>
+                {hostel.name}
+              </option>
+            ))}
+          </select>
         </div>
 
         {/* Pagination */}

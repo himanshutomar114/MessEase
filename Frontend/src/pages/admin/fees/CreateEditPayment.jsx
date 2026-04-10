@@ -25,7 +25,6 @@ const CreateEditPayment = () => {
     isActive: true,
   });
 
-  const [hostel, setHostel] = useState(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
 
@@ -33,27 +32,35 @@ const CreateEditPayment = () => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        let fetchedHostel = null;
-        if (hostelId) {
-          const hostelResponse = await api.get(`/api/hostel/${hostelId}`);
-          fetchedHostel = hostelResponse.data.hostel;
-          setHostel(fetchedHostel);
-        }
 
-        if (paymentId && fetchedHostel) {
-          const paymentResponse = await api.get(
-            `/api/payment/hostel/${fetchedHostel._id}`
-          );
-          const payment = paymentResponse.data.data;
-          setFormData({
-            amount: payment.amount,
-            title: payment.title,
-            description: payment.description || "",
-            dueDate: payment.dueDate
-              ? new Date(payment.dueDate).toISOString().split("T")[0]
-              : "",
-            isActive: payment.isActive,
-          });
+        // If paymentId is provided, fetch and edit that specific payment
+        if (paymentId && hostelId) {
+          try {
+            const paymentResponse = await api.get(
+              `/api/payment/hostel/${hostelId}`
+            );
+            // paymentResponse.data.data is now an array, find the matching payment
+            const payments = Array.isArray(paymentResponse.data.data) 
+              ? paymentResponse.data.data 
+              : [paymentResponse.data.data];
+            
+            const payment = payments.find(p => p._id === paymentId);
+            
+            if (payment) {
+              setFormData({
+                amount: payment.amount,
+                title: payment.title,
+                description: payment.description || "",
+                dueDate: payment.dueDate
+                  ? new Date(payment.dueDate).toISOString().split("T")[0]
+                  : "",
+                isActive: payment.isActive,
+              });
+            }
+          } catch (err) {
+            // If no payment found, just proceed with empty form for new payment
+            console.log("No existing payment found, creating new");
+          }
         }
       } catch (err) {
         console.error(err);
@@ -76,12 +83,18 @@ const CreateEditPayment = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    if (!hostelId) {
+      toast.error("Hostel ID is missing");
+      return;
+    }
+
     try {
       setSubmitting(true);
 
       const payload = {
         ...formData,
-        hostelId: hostel._id,
+        hostelId,
+        ...(paymentId && { paymentId }), // Include paymentId if editing
       };
 
       const response = await api.post("/api/payment/create", payload);
@@ -137,30 +150,25 @@ const CreateEditPayment = () => {
         </div>
 
         {/* Hostel Information Card with Improved Styling */}
-        {hostel && (
-          <div className="bg-gray-800 p-5 rounded-lg mb-6 border border-gray-700 shadow-lg transform hover:scale-101 transition-transform duration-200">
-            <div className="flex items-center">
-              <div className="bg-blue-600 p-2 rounded-full mr-3">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-5 w-5"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                >
-                  <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z" />
-                </svg>
-              </div>
-              <div>
-                <h2 className="font-semibold text-xl text-white">
-                  Hostel:{" "}
-                  <span className="font-normal text-blue-300">
-                    {hostel.name}
-                  </span>
-                </h2>
-              </div>
+        <div className="bg-gray-800 p-5 rounded-lg mb-6 border border-gray-700 shadow-lg transform hover:scale-101 transition-transform duration-200">
+          <div className="flex items-center">
+            <div className="bg-blue-600 p-2 rounded-full mr-3">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-5 w-5"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+              >
+                <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z" />
+              </svg>
+            </div>
+            <div>
+              <h2 className="font-semibold text-xl text-white">
+                Hostel ID: <span className="font-normal text-blue-300">{hostelId}</span>
+              </h2>
             </div>
           </div>
-        )}
+        </div>
 
         {/* Main Form Card with Enhanced Design */}
         <div className="bg-gray-800 shadow-xl rounded-lg border border-gray-700 overflow-hidden">
