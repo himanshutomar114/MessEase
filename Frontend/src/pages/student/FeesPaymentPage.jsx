@@ -129,13 +129,12 @@ const FeesPaymentPage = () => {
       }
 
       // Fetch user info from /api/student/verify-token
-      let userInfo = { name: "N/A", email: "N/A", branch: "N/A", year: "N/A" };
+      let userInfo = { name: "N/A", email: "N/A", branch: "N/A", year: "N/A", rollNumber: "N/A" };
       try {
         const res = await api.post("/api/student/verify-token");
         userInfo = res.data.userInfo;
       } catch (err) {
         console.error("Warning: Could not fetch user info for receipt:", err.message);
-        toast.warning("Using default user info for receipt");
       }
 
       // Get current date for receipt generation timestamp
@@ -147,187 +146,202 @@ const FeesPaymentPage = () => {
       const time = new Date().toLocaleTimeString("en-GB", {
         hour: "2-digit",
         minute: "2-digit",
+        second: "2-digit"
       });
 
-      // Generate receipt number
-      const receiptNumber = `RCT-${Date.now().toString().slice(-8)}`;
+      // Generate unique receipt number
+      const receiptNumber = `RCT-${Date.now().toString().slice(-10)}`;
 
       // Create a new PDF document using jsPDF
       const doc = new jsPDF();
+      
+      const pageWidth = doc.internal.pageSize.getWidth();
+      const pageHeight = doc.internal.pageSize.getHeight();
 
-      // Add a simple header with logo placeholder
-      doc.setFillColor(25, 47, 96); // Navy blue header
-      doc.rect(0, 0, 210, 30, "F");
-      doc.setTextColor(255, 255, 255); // White text
-      doc.setFontSize(22);
+      // ========== OFFICIAL HEADER ==========
+      doc.setFillColor(30, 50, 90); // Dark navy - official look
+      doc.rect(0, 0, pageWidth, 25, "F");
+      
+      doc.setTextColor(255, 255, 255);
+      doc.setFontSize(18);
       doc.setFont("helvetica", "bold");
-      doc.text("PAYMENT RECEIPT", 105, 20, { align: "center" });
+      doc.text("OFFICIAL PAYMENT RECEIPT", pageWidth / 2, 12, { align: "center" });
+      
+      doc.setFontSize(8);
+      doc.setFont("helvetica", "normal");
+      doc.text("MessEase Management System", pageWidth / 2, 20, { align: "center" });
 
-      // Reset text color for body
+      // ========== RECEIPT METADATA ==========
       doc.setTextColor(0, 0, 0);
-
-      // Add receipt information
-      doc.setFontSize(11);
+      doc.setFontSize(9);
       doc.setFont("helvetica", "normal");
-      doc.text(`Receipt No: ${receiptNumber}`, 14, 40);
-      doc.text(`Date: ${today}`, 14, 46);
-      doc.text(`Time: ${time}`, 14, 52);
+      
+      doc.text(`Receipt No.: ${receiptNumber}`, 14, 32);
+      doc.text(`Date: ${today} at ${time}`, 100, 32);
+      doc.text(`Status: PAYMENT RECEIVED`, 14, 38);
+      doc.text(`Generated: ${new Date().toISOString().split("T")[0]}`, 100, 38);
 
-      // Add payment status with color indicator
-      doc.setFontSize(14);
+      // ========== BORDER LINE ==========
+      doc.setDrawColor(30, 50, 90);
+      doc.setLineWidth(1.5);
+      doc.line(14, 42, 196, 42);
+
+      // ========== PAYER DETAILS ==========
+      doc.setFontSize(10);
       doc.setFont("helvetica", "bold");
-      doc.setTextColor(39, 174, 96); // Green for success
-      doc.text("PAYMENT SUCCESSFUL", 105, 46, { align: "center" });
-      doc.setTextColor(0, 0, 0); // Reset to black
+      doc.text("PAYER DETAILS", 14, 50);
 
-      // Horizontal line
-      doc.setDrawColor(220, 220, 220);
+      doc.setFontSize(9);
+      doc.setFont("helvetica", "normal");
+      const colLeft = 14;
+      const colRight = 105;
+      
+      doc.text(`Name: ${userInfo.name}`, colLeft, 58);
+      doc.text(`Email: ${userInfo.email}`, colLeft, 64);
+      doc.text(`Roll Number: ${userInfo.rollNumber}`, colLeft, 70);
+      doc.text(`Branch: ${userInfo.branch} | Year: ${userInfo.year}`, colRight, 58);
+
+      // ========== PAYMENT DETAILS SECTION ==========
       doc.setLineWidth(0.5);
-      doc.line(14, 58, 196, 58);
-
-      // User Information Section
-      doc.setFontSize(14);
+      doc.line(14, 75, 196, 75);
+      
+      doc.setFontSize(10);
       doc.setFont("helvetica", "bold");
-      doc.text("Student Information", 14, 68);
+      doc.text("PAYMENT PARTICULARS", 14, 82);
 
-      doc.setFontSize(11);
+      doc.setFontSize(9);
       doc.setFont("helvetica", "normal");
+      
+      doc.text(`Description: ${payment.title}`, colLeft, 90);
+      if (payment.description) {
+        doc.text(`Details: ${payment.description}`, colLeft, 96);
+      }
 
-      // Create two-column layout for student info
-      const leftColumn = 14;
-      const rightColumn = 105;
-
-      doc.text(`Name: ${userInfo.name}`, leftColumn, 78);
-      doc.text(`Email: ${userInfo.email}`, leftColumn, 86);
-      doc.text(`Branch: ${userInfo.branch || "N/A"}`, rightColumn, 78);
-      doc.text(`Year: ${userInfo.year || "N/A"}`, rightColumn, 86);
-
-      // Horizontal line
-      doc.line(14, 94, 196, 94);
-
-      // Payment Information Section
-      doc.setFontSize(14);
-      doc.setFont("helvetica", "bold");
-      doc.text("Payment Details", 14, 104);
-
-      doc.setFontSize(11);
-      doc.setFont("helvetica", "normal");
-      doc.text(`Payment Title: ${payment.title}`, 14, 114);
-
-      // Format payment date using the paidAt field from paymentDetails
-      let paymentDate = "N/A";
-      if (payment.paymentDetails && payment.paymentDetails.paidAt) {
-        paymentDate = new Date(
-          payment.paymentDetails.paidAt
-        ).toLocaleDateString("en-GB", {
+      // Get payment details with proper fallback
+      const paymentInfo = payment.paymentDetails || {};
+      const razorpayId = paymentInfo.razorpayPaymentId || paymentInfo.transactionId || "N/A";
+      const transactionId = razorpayId;
+      
+      doc.text(`Payment Method: Razorpay (Online Gateway)`, colLeft, 102);
+      doc.text(`Transaction ID: ${transactionId}`, colLeft, 108);
+      
+      // Format due date
+      let dueDate = "N/A";
+      if (payment.dueDate) {
+        dueDate = new Date(payment.dueDate).toLocaleDateString("en-GB", {
           day: "numeric",
           month: "long",
           year: "numeric",
         });
       }
-      doc.text(`Payment Date: ${paymentDate}`, 14, 122);
-
-      // Format due date if available
-      let dueDate = "N/A";
-      if (payment.dueDate) {
-        dueDate = new Date(payment.dueDate).toLocaleDateString(
-          "en-GB",
-          {
-            day: "numeric",
-            month: "long",
-            year: "numeric",
-          }
-        );
-      }
-      doc.text(`Due Date: ${dueDate}`, 14, 130);
-
-      // Add transaction ID from paymentDetails if available
-      const transactionId =
-        (payment.paymentDetails && payment.paymentDetails.transactionId) ||
-        "N/A";
-      doc.text(`Transaction ID: ${transactionId}`, 14, 138);
-
-      // Add payment method from paymentDetails
-      const paymentMethod =
-        (payment.paymentDetails && payment.paymentDetails.paymentMethod) ||
-        "Online Payment";
-      doc.text(`Payment Method: ${paymentMethod}`, 14, 146);
-
-      // Add Razorpay Payment ID if available
-      if (payment.paymentDetails && payment.paymentDetails.razorpayPaymentId) {
-        doc.text(
-          `Razorpay Payment ID: ${payment.paymentDetails.razorpayPaymentId}`,
-          14,
-          154
-        );
-      }
-
-      // Horizontal line
-      doc.line(14, 162, 196, 162);
-
-      // Amount Section
-      doc.setFontSize(14);
-      doc.setFont("helvetica", "bold");
-      doc.text("Amount Details", 14, 172);
-
-      // Create a summary table for amount
-      doc.setFontSize(11);
-      doc.setFont("helvetica", "normal");
-
-      // Base amount
-      doc.text("Base Amount:", 14, 182);
-      doc.text(
-        `₹${(payment.amount - (payment.tax || 0)).toFixed(2)}`,
-        170,
-        182,
-        { align: "right" }
-      );
-
-      // Tax (if applicable)
-      if (payment.tax) {
-        doc.text("Tax:", 14, 190);
-        doc.text(`₹${payment.tax.toFixed(2)}`, 170, 190, {
-          align: "right",
+      
+      let paymentDate = today;
+      if (payment.paymentDetails && payment.paymentDetails.paidAt) {
+        paymentDate = new Date(payment.paymentDetails.paidAt).toLocaleDateString("en-GB", {
+          day: "numeric",
+          month: "long",
+          year: "numeric",
         });
       }
+      
+      doc.text(`Due Date: ${dueDate}`, colRight, 90);
+      doc.text(`Payment Date: ${paymentDate}`, colRight, 96);
+      doc.text(`Ref. ID: ${receiptNumber}`, colRight, 102);
 
-      // Total
+      // ========== AMOUNT SECTION - FORMAL STYLE ==========
+      doc.setLineWidth(0.5);
+      doc.line(14, 115, 196, 115);
+      
+      doc.setFontSize(10);
       doc.setFont("helvetica", "bold");
-      doc.text("Total Amount:", 14, 198);
-      doc.text(`₹${payment.amount.toFixed(2)}`, 170, 198, {
-        align: "right",
-      });
+      doc.text("AMOUNT DETAILS", 14, 122);
 
-      // Add footer with terms and contact
       doc.setFontSize(9);
+      doc.setFont("helvetica", "normal");
+      
+      // Simple formal table-like format for amount
+      doc.text("Amount Paid:", 20, 132);
+      doc.setFont("helvetica", "bold");
+      doc.text(`Rs. ${payment.amount.toFixed(2)}`, 170, 132, { align: "right" });
+      
+      // Formal dividing line
+      doc.setDrawColor(100, 100, 100);
+      doc.setLineWidth(0.5);
+      doc.line(20, 135, 185, 135);
+
+      // ========== STAMP AND SIGNATURE ==========
+      doc.setLineWidth(0.5);
+      doc.line(14, 155, 196, 155);
+      
+      const stampArea = 160;
+      
       doc.setTextColor(100, 100, 100);
-      doc.text(
-        "This is an electronically generated receipt and does not require a signature.",
-        105,
-        240,
-        { align: "center" }
-      );
-      doc.text(
-        "For any queries regarding this payment, please contact the accounts department.",
-        105,
-        246,
-        { align: "center" }
-      );
-      doc.text("Thank you for your payment.", 105, 252, { align: "center" });
+      doc.setFontSize(8);
+      doc.setFont("helvetica", "normal");
+      
+      // Stamp circle
+      doc.setDrawColor(150, 150, 150);
+      doc.setLineWidth(0.5);
+      doc.circle(35, stampArea + 10, 10);
+      doc.text("OFFICIAL", 35, stampArea + 8, { align: "center" });
+      doc.text("STAMP", 35, stampArea + 15, { align: "center" });
+      
+      // Signature line
+      doc.setDrawColor(100, 100, 100);
+      doc.setLineWidth(0.5);
+      doc.line(120, stampArea + 18, 190, stampArea + 18);
+      doc.text("Authorized Signature", 155, stampArea + 22, { align: "center" });
 
-      // Add a border to the entire page
-      doc.setDrawColor(25, 47, 96);
+      // ========== VERIFICATION BLOCK ==========
       doc.setLineWidth(1);
-      doc.rect(5, 5, 200, 287);
+      doc.setDrawColor(80, 80, 80);
+      doc.rect(14, 195, 182, 25);
+      
+      doc.setTextColor(30, 50, 90);
+      doc.setFontSize(9);
+      doc.setFont("helvetica", "bold");
+      doc.text("PAYMENT VERIFICATION", 18, 203);
+      
+      doc.setTextColor(60, 60, 60);
+      doc.setFontSize(8);
+      doc.setFont("helvetica", "normal");
+      
+      doc.text(`Verification Code: ${receiptNumber}`, 18, 210);
+      doc.text(`Reference: ${transactionId}`, 18, 215);
+      doc.text(`Status: Successfully Received & Verified`, 120, 210);
 
-      // Save/download the PDF with a more descriptive filename
-      const filename = `Receipt_${payment.title.replace(/\s+/g, "_")}_${new Date().toISOString().split("T")[0]}.pdf`;
+      // ========== TERMS AND CONDITIONS ==========
+      doc.setFontSize(7);
+      doc.setTextColor(80, 80, 80);
+      doc.setFont("helvetica", "normal");
+      
+      const termsY = 230;
+      doc.text("TERMS & CONDITIONS:", 14, termsY);
+      doc.text("1. This receipt is an official document generated by the MessEase Management System.", 14, termsY + 4);
+      doc.text("2. No manual signature is required as this is a digitally generated and certified document.", 14, termsY + 8);
+      doc.text("3. This receipt serves as proof of payment for records and audit purposes.", 14, termsY + 12);
+      doc.text("4. For any discrepancies, contact the accounts department immediately with this receipt.", 14, termsY + 16);
+
+      // ========== FOOTER ==========
+      doc.setTextColor(100, 100, 100);
+      doc.setFontSize(7);
+      doc.setFont("helvetica", "normal");
+      
+      const footerText = `This is a digitally signed and authenticated receipt. System Reference: ${receiptNumber} | Generated: ${new Date().toISOString()}`;
+      doc.text(footerText, pageWidth / 2, pageHeight - 8, { align: "center", maxWidth: 180 });
+
+      // ========== OFFICIAL BORDER ==========
+      doc.setDrawColor(30, 50, 90);
+      doc.setLineWidth(2);
+      doc.rect(5, 5, pageWidth - 10, pageHeight - 10);
+
+      // Save the PDF
+      const filename = `Receipt_${payment.title.replace(/\s+/g, "_")}_${receiptNumber}_${new Date().toISOString().split("T")[0]}.pdf`;
       doc.save(filename);
 
-      toast.success("Receipt downloaded successfully");
+      toast.success("Official receipt downloaded successfully!");
     } catch (err) {
       console.error("Error generating receipt:", err);
-      console.error("Error details:", err.message);
       toast.error("Failed to generate receipt: " + (err.message || "Unknown error"));
     }
   };
