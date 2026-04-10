@@ -60,6 +60,9 @@ import { setUser } from "./store/authSlice.js";
 import GuestBookingApprovalsPage from "./pages/admin/GuestBookingApprovalsPage.jsx";
 import GuestBookingsPage from "./pages/student/GuestBookingsPage.jsx";
 import GuestRoomBookingsPage from "./pages/admin/GuestRoomBookingsPage.jsx";
+import NotificationsPage from "./pages/student/NotificationsPage.jsx";
+import HelpCenterPage from "./pages/student/HelpCenterPage.jsx";
+import AcademicsPage from "./pages/student/AcademicsPage.jsx";
 
 function App() {
   const dispatch = useDispatch();
@@ -202,6 +205,10 @@ function App() {
         {/* Guest Room Booking Routes */}
         <Route path="/admin/guest-bookings" element={<GuestBookingApprovalsPage />} />
         <Route path="/student/guest-bookings" element={<GuestBookingsPage />} />
+        {/* New Student Pages */}
+        <Route path="/student/notifications" element={<NotificationsPage />} />
+        <Route path="/student/help" element={<HelpCenterPage />} />
+        <Route path="/student/academics" element={<AcademicsPage />} />
       </Routes>
       {/* <Toaster
         position="top-right"

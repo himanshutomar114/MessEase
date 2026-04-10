@@ -12,6 +12,7 @@ function StudentHome() {
   const [isBlocked, setIsBlocked] = useState(false);
   const { user, code } = useSelector((state) => state.auth);
   const [userId, setUserId] = useState("");
+  const [unreadCount, setUnreadCount] = useState(0);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -43,6 +44,57 @@ function StudentHome() {
       }
     };
     verifyHostel();
+  }, []);
+
+  // Function to calculate unread count from localStorage or API
+  const fetchUnreadCount = async () => {
+    try {
+      // Try to fetch from API endpoint
+      const response = await api.get("/api/student/notifications/unread-count");
+      setUnreadCount(response.data.data.unreadCount);
+    } catch (err) {
+      // Fallback: Calculate from localStorage or mock data
+      const storedNotifications = localStorage.getItem("studentNotifications");
+      if (storedNotifications) {
+        try {
+          const parsed = JSON.parse(storedNotifications);
+          const unreadNotifications = parsed.filter((n) => !n.read);
+          setUnreadCount(unreadNotifications.length);
+          return;
+        } catch (e) {
+          console.error("Error parsing stored notifications", e);
+        }
+      }
+
+      // Fallback to mock data
+      const mockNotifications = [
+        { id: 1, type: "election", title: "New Election Started", description: "Hostel Manager election is now open for voting", timestamp: new Date(Date.now() - 1 * 60 * 60 * 1000), icon: "🗳️", color: "blue", read: false },
+        { id: 2, type: "fees", title: "Fee Payment Due", description: "Hostel fees for March 2026 are due by March 15th", timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000), icon: "💳", color: "amber", read: false },
+        { id: 3, type: "mess", title: "Mess Menu Updated", description: "New menu for next week has been posted", timestamp: new Date(Date.now() - 3 * 60 * 60 * 1000), icon: "🍽️", color: "amber", read: true },
+        { id: 4, type: "guest", title: "Guest Room Available", description: "A new guest room has been made available for booking", timestamp: new Date(Date.now() - 5 * 60 * 60 * 1000), icon: "🏠", color: "green", read: false },
+        { id: 5, type: "complaint", title: "Complaint Resolved", description: "Your complaint about water supply has been resolved", timestamp: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000), icon: "✅", color: "green", read: true },
+        { id: 6, type: "results", title: "Election Results Available", description: "View the results of the latest hostel election", timestamp: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000), icon: "📊", color: "purple", read: true },
+      ];
+      const unreadNotifications = mockNotifications.filter((n) => !n.read);
+      setUnreadCount(unreadNotifications.length);
+    }
+  };
+
+  // Fetch unread count on mount
+  useEffect(() => {
+    fetchUnreadCount();
+  }, []);
+
+  // Listen for notification updates from other pages/tabs
+  useEffect(() => {
+    const handleNotificationUpdate = () => {
+      fetchUnreadCount();
+    };
+
+    window.addEventListener("notificationUpdated", handleNotificationUpdate);
+    return () => {
+      window.removeEventListener("notificationUpdated", handleNotificationUpdate);
+    };
   }, []);
 
   if (loading) {
@@ -373,12 +425,12 @@ function StudentHome() {
               </button>
               <button
                 disabled={isBlocked}
-                className={`px-4 py-3 rounded-lg flex flex-col items-center justify-center group ${
+                className={`px-4 py-3 rounded-lg flex flex-col items-center justify-center group relative ${
                   isBlocked
                     ? "bg-gray-700 text-gray-400 cursor-not-allowed"
                     : "bg-gray-700/80 text-white hover:bg-gray-600 transition-all duration-300"
                 }`}
-                onClick={() => !isBlocked && navigate("/student/profile")}
+                onClick={() => !isBlocked && navigate("/student/notifications")}
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -388,6 +440,13 @@ function StudentHome() {
                 >
                   <path d="M10 2a6 6 0 00-6 6v3.586l-.707.707A1 1 0 004 14h12a1 1 0 00.707-1.707L16 11.586V8a6 6 0 00-6-6zM10 18a3 3 0 01-3-3h6a3 3 0 01-3 3z" />
                 </svg>
+                {unreadCount > 0 && (
+                  <div
+                    className="absolute top-0 right-0 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white transform translate-x-1/2 -translate-y-1/2 bg-red-600 rounded-full min-w-max"
+                  >
+                    {unreadCount > 99 ? "99+" : unreadCount}
+                  </div>
+                )}
                 <span>Notifications</span>
               </button>
               <button
@@ -397,7 +456,7 @@ function StudentHome() {
                     ? "bg-gray-700 text-gray-400 cursor-not-allowed"
                     : "bg-gray-700/80 text-white hover:bg-gray-600 transition-all duration-300"
                 }`}
-                onClick={() => !isBlocked && navigate("/student/profile")}
+                onClick={() => !isBlocked && navigate("/student/help")}
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -420,7 +479,7 @@ function StudentHome() {
                     ? "bg-gray-700 text-gray-400 cursor-not-allowed"
                     : "bg-gray-700/80 text-white hover:bg-gray-600 transition-all duration-300"
                 }`}
-                onClick={() => !isBlocked && navigate("/student/fees")}
+                onClick={() => !isBlocked && navigate("/student/academics")}
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
