@@ -13,6 +13,9 @@ import {
   changePassword,
   forgotPassword,
   getStudentDiagnostics,
+  getAcademics,
+  updateAcademics,
+  resetSemester,
 } from "../controller/student.controller.js";
 import { verifyJWT } from "../middleware/auth.middleware.js";
 import { upload } from "../middleware/multer.middleware.js";
@@ -30,6 +33,9 @@ router.post("/verify-token", verifyJWT, verifyToken);
 router.post("/getStudent/:id", verifyJWT, getStudent);
 router.get("/check-hostel-assignment", verifyJWT, checkHostelAssignment);
 router.get("/diagnostics", verifyJWT, getStudentDiagnostics);
+router.get("/academics/get", verifyJWT, getAcademics);
+router.post("/academics/update", verifyJWT, updateAcademics);
+router.post("/academics/reset-semester", verifyJWT, resetSemester);
 router.patch("/update-profile", verifyJWT, updateUserProfile);
 router.post(
   "/upload-profile-picture",

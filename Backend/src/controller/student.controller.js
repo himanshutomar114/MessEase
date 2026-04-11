@@ -1,5 +1,6 @@
 import User from "../model/user.model.js";
 import College from "../model/college.model.js";
+import Academics from "../model/academics.model.js";
 import nodemailer from "nodemailer";
 import { ApiError } from "../util/ApiError.js";
 import { ApiResponse } from "../util/ApiResponse.js";
@@ -949,4 +950,169 @@ export const toggleBlockStudent = asyncHandler(async (req, res) => {
       error.message || "Error toggling student block status"
     );
   }
+});
+
+// Get student academics data
+export const getAcademics = asyncHandler(async (req, res) => {
+  const studentId = req.user._id;
+  const { semester, academicYear } = req.query;
+
+  console.log("🔍 getAcademics called for student:", studentId);
+
+  const query = { student: studentId };
+  if (semester) query.semester = parseInt(semester);
+  if (academicYear) query.academicYear = academicYear;
+
+  let academics = await Academics.findOne(query).populate("student", "name email");
+
+  if (!academics) {
+    console.log("📝 No academics record found, creating default...");
+    // Create default academics record if doesn't exist
+    academics = await Academics.create({
+      student: studentId,
+      semester: semester || 1,
+      academicYear: academicYear || new Date().getFullYear().toString(),
+      cgpa: 3.8,
+      timetable: {},
+      attendancePercentage: 0,
+    });
+  } else {
+    console.log("✅ Found academics. Timetable keys:", academics.timetable ? Object.keys(academics.timetable).slice(0, 3) : "none");
+  }
+
+  return res
+    .status(200)
+    .json(
+      new ApiResponse(
+        200,
+        academics,
+        "Academics data fetched successfully"
+      )
+    );
+});
+
+// Update student academics (CGPA and timetable)
+export const updateAcademics = asyncHandler(async (req, res) => {
+  const studentId = req.user._id;
+  const { cgpa, timetable, semester, academicYear } = req.body;
+
+  console.log("📚 updateAcademics called");
+  console.log("Received timetable keys:", timetable ? Object.keys(timetable).slice(0, 3) : "none");
+
+  // Validate CGPA
+  if (cgpa !== undefined && (cgpa < 0 || cgpa > 10)) {
+    throw new ApiError(400, "CGPA must be between 0 and 10");
+  }
+
+  // Calculate attendance percentage (handle 3-level structure: week -> day -> slot)
+  let attendancePercentage = 0;
+  if (timetable) {
+    let totalClasses = 0;
+    let attendedClasses = 0;
+
+    // Iterate through weeks
+    for (const week in timetable) {
+      // Iterate through days in each week
+      for (const day in timetable[week]) {
+        // Iterate through slots in each day
+        for (const slot in timetable[week][day]) {
+          totalClasses++;
+          if (timetable[week][day][slot].attended) {
+            attendedClasses++;
+          }
+        }
+      }
+    }
+
+    attendancePercentage =
+      totalClasses > 0 ? Math.round((attendedClasses / totalClasses) * 100) : 0;
+    console.log(`📊 Attendance calculated: ${attendedClasses}/${totalClasses} = ${attendancePercentage}%`);
+  }
+
+  const updateData = {
+    student: studentId,
+    semester: semester || 1,
+    academicYear: academicYear || new Date().getFullYear().toString(),
+  };
+
+  if (cgpa !== undefined) updateData.cgpa = cgpa;
+  if (timetable) updateData.timetable = timetable;
+  if (timetable) updateData.attendancePercentage = attendancePercentage;
+
+  const academics = await Academics.findOneAndUpdate(
+    {
+      student: studentId,
+      semester: updateData.semester,
+      academicYear: updateData.academicYear,
+    },
+    { $set: updateData },
+    { new: true, upsert: true }
+  );
+
+  console.log("✅ Academics saved. Timetable keys in DB:", academics.timetable ? Object.keys(academics.timetable).slice(0, 3) : "none");
+
+  return res
+    .status(200)
+    .json(
+      new ApiResponse(
+        200,
+        academics,
+        "Academics data updated successfully"
+      )
+    );
+});
+
+// Reset semester (clear timetable attendance)
+export const resetSemester = asyncHandler(async (req, res) => {
+  const studentId = req.user._id;
+  const { semester, academicYear } = req.body;
+
+  if (!semester || !academicYear) {
+    throw new ApiError(
+      400,
+      "Semester and academic year are required"
+    );
+  }
+
+  // Get current academics data
+  const currentAcademics = await Academics.findOne({
+    student: studentId,
+    semester,
+    academicYear,
+  });
+
+  if (!currentAcademics) {
+    throw new ApiError(404, "Academics record not found");
+  }
+
+  // Reset all subjects to empty and attendance marks to false
+  const resetTimetable = {};
+  if (currentAcademics.timetable) {
+    for (const week in currentAcademics.timetable) {
+      resetTimetable[week] = {};
+      for (const day in currentAcademics.timetable[week]) {
+        resetTimetable[week][day] = {};
+        for (const slot in currentAcademics.timetable[week][day]) {
+          resetTimetable[week][day][slot] = {
+            subject: "",  // Reset subject to empty
+            attended: false,
+          };
+        }
+      }
+    }
+  }
+
+  currentAcademics.timetable = resetTimetable;
+  currentAcademics.attendancePercentage = 0;
+  await currentAcademics.save();
+
+  return res
+    .status(200)
+    .json(
+      new ApiResponse(
+        200,
+        currentAcademics,
+        "Semester reset successfully"
+      )
+    );
 });
