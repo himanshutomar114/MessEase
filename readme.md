@@ -74,7 +74,7 @@ MessEase is a comprehensive platform designed to streamline mess and hostel mana
 1. **Clone the repository:**
 
     ```bash
-    git clone https://github.com/Hersheys-commits/MessEase.git
+    git clone https://github.com/himanshutomar114/MessEase.git
     cd MessEase
     ```
 
@@ -164,6 +164,18 @@ MessEase is a comprehensive platform designed to streamline mess and hostel mana
 
 ---
 
+## Developers
+
+**MessEase** is developed and maintained by:
+
+- **Himanshu Tomar**
+  - Full Stack Developer
+  - Email: [himanshutomar114@gmail.com](mailto:himanshutomar114@gmail.com)
+  - GitHub: [@himanshutomar114](https://github.com/himanshutomar114)
+  - Role: Project Lead & Core Developer
+  - Contributions: System architecture, backend development, frontend development, database design
+
+---
 
 ## License
 
@@ -171,7 +183,7 @@ MessEase is licensed under the MIT License. See the [LICENSE](LICENSE) file for 
 
 ## Contact
 
-For questions or suggestions, please contact [himanshutomar114@gmail.com](mailto:himanshutomar114@gmail.com).
+For questions, suggestions, or contributions, please contact [himanshutomar114@gmail.com](mailto:himanshutomar114@gmail.com).
 
 ---
 
