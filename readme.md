@@ -64,8 +64,6 @@ MessEase is a comprehensive platform designed to streamline mess and hostel mana
 - Availability calendar with real-time updates
 - Approval workflow for guest stay requests
 - Check-in/check-out management
-- Payment processing for room charges
-- Guest history and reporting
 
 
 
