@@ -44,6 +44,7 @@ import ForgotPassword from "./pages/auth/ForgotPassword";
 import MessComplaints from "./pages/student/MessComplaints.jsx";
 import HostelComplaintsPage from "./pages/admin/HostelComplaints.jsx";
 import MessComplaintsPage from "./pages/admin/MessComplaints.jsx";
+import HostelComplaints from "./pages/student/HostelComplaints.jsx";
 import { CreateGroupChat } from "./pages/admin/CreateGroupChat";
 import { GroupChat } from "./pages/hostel/GroupChat";
 import CustomCursor from "./components/CustomCursor.jsx";
@@ -124,6 +125,10 @@ function App() {
         <Route
           path="/student/mess/:messCode/complaints"
           element={<MessComplaints />}
+        />
+        <Route
+          path="/student/hostel/:hostelCode/complaints"
+          element={<HostelComplaints />}
         />
         <Route
           path="/student/mess/:messCode/time-table"

@@ -1,5 +1,5 @@
 import { FaMoneyBillWave } from "react-icons/fa";
-import { Utensils } from "lucide-react";
+import { Utensils, AlertCircle } from "lucide-react";
 import React, { useEffect, useState, useRef } from "react";
 import { useNavigate, NavLink, useLocation } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
@@ -91,6 +91,7 @@ const Header = () => {
     { title: "Fees", path: "/student/fees", icon: "money" },
     { title: "Mess", path: `/student/mess/${code}`, icon: "mess" },
     { title: "Chat", path: `/hostel/groupChat/${code}`, icon: "chat" },
+    { title: "Hostel Complaints", path: `/student/hostel/${code}/complaints`, icon: "complaint" },
     { title: "Marketplace", path: "/marketplace", icon: "cart" },
   ];
 
@@ -158,8 +159,11 @@ const Header = () => {
             {link.icon === "chat" && (
               <IoChatbubbleEllipses className="h-4 mr-1" />
             )}
+            {link.icon === "complaint" && code != "000" && (
+              <AlertCircle className="h-4 mr-1" />
+            )}
             {link.icon === "cart" && <FaCartShopping className="h-4 mr-1" />}
-            {link.icon === "mess"
+            {(link.icon === "mess" || link.icon === "complaint")
               ? code !== "000"
                 ? link.title
                 : null
@@ -270,10 +274,13 @@ const Header = () => {
                     {link.icon === "chat" && (
                       <IoChatbubbleEllipses className="h-4 w-4 mr-2 ml-1" />
                     )}
+                    {link.icon === "complaint" && code != "000" && (
+                      <AlertCircle className="h-4 w-4 mr-2 ml-1" />
+                    )}
                     {link.icon === "cart" && (
                       <FaCartShopping className="h-4 ml-1 mr-2" />
                     )}
-                    {link.icon === "mess"
+                    {(link.icon === "mess" || link.icon === "complaint")
                       ? code !== "000"
                         ? link.title
                         : null
