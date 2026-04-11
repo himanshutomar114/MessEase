@@ -91,7 +91,6 @@ const Header = () => {
     { title: "Fees", path: "/student/fees", icon: "money" },
     { title: "Mess", path: `/student/mess/${code}`, icon: "mess" },
     { title: "Chat", path: `/hostel/groupChat/${code}`, icon: "chat" },
-    { title: "Hostel Complaints", path: `/student/hostel/${code}/complaints`, icon: "complaint" },
     { title: "Marketplace", path: "/marketplace", icon: "cart" },
   ];
 

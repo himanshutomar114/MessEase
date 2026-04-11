@@ -27,7 +27,6 @@ const MessComplaints = () => {
     "Food Quality",
     "Service",
     "Menu Concerns",
-    "Hostel",
   ];
 
   const code = useParams();
