@@ -1,13 +1,35 @@
-# services:
-#   - type: web
-#     name: your-service-name   # Change this to your actual service name on Render
-#     env: node
-#     buildCommand: npm install && npm run build
-#     startCommand: npm start
-#     headers:
-#       - path: /*
-#         name: Cross-Origin-Opener-Policy
-#         value: same-origin-allow-popups
-#       - path: /*
-#         name: Cross-Origin-Embedder-Policy
-#         value: require-corp
+services:
+  - type: web
+    name: messease-backend
+    dockerfilePath: ./Dockerfile
+    region: oregon
+    plan: free
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 4001
+      - key: MONGODB_URI
+        sync: false
+      - key: CLOUDINARY_CLOUD_NAME
+        sync: false
+      - key: CLOUDINARY_API_KEY
+        sync: false
+      - key: CLOUDINARY_API_SECRET
+        sync: false
+      - key: ACCESS_TOKEN_SECRET
+        sync: false
+      - key: REFRESH_TOKEN_SECRET
+        sync: false
+      - key: GOOGLE_CLIENT_ID
+        sync: false
+      - key: EMAIL_USER
+        sync: false
+      - key: EMAIL_PASS
+        sync: false
+      - key: RAZORPAY_API_KEY
+        sync: false
+      - key: RAZORPAY_API_SECRET
+        sync: false
+      - key: CLIENT_URL
+        sync: false
