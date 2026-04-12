@@ -8,7 +8,7 @@ import CreateCollegePage from "./pages/admin/CreateCollegePage";
 import PageNotFound from "./pages/PageNotFound";
 import { CustomToaster } from "./utils/toast";
 import { Toaster } from "react-hot-toast";
-// Import your actual components here
+// Import your actual components 
 import StudentHome from "./pages/student/StudentHome";
 import HomePage from "./pages/HomePage";
 import AdminHome from "./pages/admin/AdminHome";
