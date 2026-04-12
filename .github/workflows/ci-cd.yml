@@ -18,13 +18,13 @@ jobs:
           node-version: '20'
 
       - name: Install & Test Backend
-        working-directory: ./backend
+        working-directory: ./Backend
         run: |
           npm ci
           npm test
 
       - name: Install & Test Frontend
-        working-directory: ./frontend
+        working-directory: ./Frontend
         run: |
           npm ci
           npm test -- --watchAll=false
