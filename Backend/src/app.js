@@ -10,14 +10,19 @@ dotenv.config({
 
 
 const allowedOrigins = [
-  process.env.FRONTEND_URL || "https://mess-ease.vercel.app",
-];
+  "https://mess-ease.vercel.app",
+  "http://localhost:5173",
+  "http://localhost:3000",
+  process.env.FRONTEND_URL,
+].filter(Boolean);
 
 const app = express();
 
 app.use(cors({
   origin: allowedOrigins,
-  credentials: true
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
 }));
 
 // Middleware to parse JSON bodies with increased size limit for timetable data

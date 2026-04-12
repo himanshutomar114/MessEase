@@ -30,8 +30,11 @@ export const instance = new RazorPay({
 
 
 const allowedOrigins = [
-  process.env.FRONTEND_URL || "https://mess-ease.vercel.app",
-];
+  "https://mess-ease.vercel.app",
+  "http://localhost:5173",
+  "http://localhost:3000",
+  process.env.FRONTEND_URL,
+].filter(Boolean);
 
 const app = express();
 const server = createServer(app); // Create an HTTP server
@@ -39,7 +42,9 @@ const server = createServer(app); // Create an HTTP server
 const io = new Server(server, {
   cors: {
     origin: allowedOrigins,
+    methods: ["GET", "POST"],
     credentials: true,
+    allowEIO3: true,
   },
 });
 
