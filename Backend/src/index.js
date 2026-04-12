@@ -30,7 +30,8 @@ export const instance = new RazorPay({
 
 
 const allowedOrigins = [
-  "http://localhost:5173"
+  "http://localhost:5173",
+  "https://messease-frontend.vercel.app",
 ];
 
 const app = express();
