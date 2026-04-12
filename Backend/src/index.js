@@ -30,9 +30,6 @@ export const instance = new RazorPay({
 
 
 const allowedOrigins = [
-  "http://localhost:5173",
-  "http://localhost:3000",
-  "https://mess-ease.vercel.appp",
   process.env.FRONTEND_URL || "https://mess-ease.vercel.app",
 ];
 
