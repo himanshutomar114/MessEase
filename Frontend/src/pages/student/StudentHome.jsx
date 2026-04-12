@@ -374,6 +374,63 @@ function StudentHome() {
                 </button>
               </div>
             </div>
+
+            {/* Hostel Complaints Card */}
+            <div
+              className={`backdrop-blue-md bg-gray-800/70 p-6 rounded-xl shadow-lg border ${
+                isBlocked
+                  ? "border-gray-700 opacity-70"
+                  : "border-gray-700 hover:border-indigo-500 transition-all duration-300 hover:shadow-indigo-900/20 hover:shadow-xl"
+              }`}
+            >
+              <div className="flex items-center mb-4">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className={`h-8 w-8 mr-3 ${isBlocked ? "text-gray-400" : "text-red-400"}`}
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                >
+                  <path d="M2.5 3A1.5 1.5 0 001 4.5v.006c0 .896.889 1.833 1.5 2.454V19a2 2 0 002 2h10a2 2 0 002-2V6.954c.611-.62 1.5-1.557 1.5-2.454V4.5A1.5 1.5 0 0017.5 3h-15z" />
+                </svg>
+                <h2
+                  className={`text-xl font-semibold ${isBlocked ? "text-gray-400" : "text-red-400"}`}
+                >
+                  Hostel Complaints
+                </h2>
+              </div>
+              <p
+                className={
+                  isBlocked ? "text-gray-500 mb-6" : "text-gray-300 mb-6"
+                }
+              >
+                Report issues and track complaint resolution
+              </p>
+              <div className="flex flex-col space-y-3">
+                <button
+                  onClick={() => !isBlocked && navigate(`/student/hostel/${code}/complaints`)}
+                  disabled={isBlocked}
+                  className={`px-4 py-3 rounded-lg w-full flex items-center justify-between group ${
+                    isBlocked
+                      ? "bg-gray-600 text-gray-400 cursor-not-allowed"
+                      : "bg-red-600 text-white hover:bg-red-700 transition-all duration-300"
+                  }`}
+                >
+                  <span>View Complaints</span>
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className={`h-5 w-5 ${isBlocked ? "" : "group-hover:translate-x-1 transition-transform duration-300"}`}
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M10.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L12.586 11H5a1 1 0 110-2h7.586l-2.293-2.293a1 1 0 010-1.414z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                </button>
+              </div>
+            </div>
           </div>
 
           {/* Quick Links Section */}
@@ -515,25 +572,6 @@ function StudentHome() {
                   />
                 </svg>
                 <span>Calendar</span>
-              </button>
-              <button
-                disabled={isBlocked}
-                className={`px-4 py-3 rounded-lg flex flex-col items-center justify-center group ${
-                  isBlocked
-                    ? "bg-gray-700 text-gray-400 cursor-not-allowed"
-                    : "bg-gray-700/80 text-white hover:bg-gray-600 transition-all duration-300"
-                }`}
-                onClick={() => !isBlocked && navigate(`/student/hostel/${code}/complaints`)}
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className={`h-6 w-6 mb-2 ${isBlocked ? "text-gray-500" : "text-indigo-300 group-hover:text-indigo-200"}`}
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                >
-                  <path d="M2.5 3A1.5 1.5 0 001 4.5v.006c0 .896.889 1.833 1.5 2.454V19a2 2 0 002 2h10a2 2 0 002-2V6.954c.611-.62 1.5-1.557 1.5-2.454V4.5A1.5 1.5 0 0017.5 3h-15z" />
-                </svg>
-                <span>Complaints</span>
               </button>
               <button
                 disabled={isBlocked}
