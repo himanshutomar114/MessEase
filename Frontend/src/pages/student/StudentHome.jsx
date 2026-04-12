@@ -523,6 +523,25 @@ function StudentHome() {
                     ? "bg-gray-700 text-gray-400 cursor-not-allowed"
                     : "bg-gray-700/80 text-white hover:bg-gray-600 transition-all duration-300"
                 }`}
+                onClick={() => !isBlocked && navigate(`/student/hostel/${code}/complaints`)}
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className={`h-6 w-6 mb-2 ${isBlocked ? "text-gray-500" : "text-indigo-300 group-hover:text-indigo-200"}`}
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                >
+                  <path d="M2.5 3A1.5 1.5 0 001 4.5v.006c0 .896.889 1.833 1.5 2.454V19a2 2 0 002 2h10a2 2 0 002-2V6.954c.611-.62 1.5-1.557 1.5-2.454V4.5A1.5 1.5 0 0017.5 3h-15z" />
+                </svg>
+                <span>Complaints</span>
+              </button>
+              <button
+                disabled={isBlocked}
+                className={`px-4 py-3 rounded-lg flex flex-col items-center justify-center group ${
+                  isBlocked
+                    ? "bg-gray-700 text-gray-400 cursor-not-allowed"
+                    : "bg-gray-700/80 text-white hover:bg-gray-600 transition-all duration-300"
+                }`}
                 onClick={() => !isBlocked && navigate("/student/update-profile")}
               >
                 <svg
