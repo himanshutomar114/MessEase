@@ -10,9 +10,6 @@ dotenv.config({
 
 
 const allowedOrigins = [
-  "http://localhost:5173",
-  "http://localhost:3000",
-  "https://mess-ease.vercel.app",
   process.env.FRONTEND_URL || "https://mess-ease.vercel.app",
 ];
 
